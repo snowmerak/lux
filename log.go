@@ -11,12 +11,10 @@ import (
 	"github.com/snowmerak/lux/middleware"
 )
 
-const SYSTEM = "SYSTEM"
-
 type Logger struct{}
 
 func init() {
-	logger.Observe(SYSTEM, stdout.New(context.Background(), loglevel.All, nil))
+	logger.Observe(logger.SYSTEM, stdout.New(context.Background(), loglevel.All, nil))
 	logger.Observe(middleware.MIDDLEWARE, stdout.New(context.Background(), loglevel.All, nil))
 }
 

@@ -3,10 +3,13 @@ package lux
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/snowmerak/logstream/log"
 	"github.com/snowmerak/logstream/log/loglevel"
+	"github.com/snowmerak/lux/logger"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/protobuf/proto"
 )
@@ -41,7 +44,7 @@ func (l *LuxContext) ReplyJSON(data interface{}) {
 	l.ctx.SetStatusCode(fasthttp.StatusOK)
 	encoder := json.NewEncoder(l.ctx.Response.BodyWriter())
 	if err := encoder.Encode(data); err != nil {
-		l.Log.Write(SYSTEM, log.New(loglevel.Error, err.Error()).End())
+		l.Log.Write(logger.SYSTEM, log.New(loglevel.Error, err.Error()).End())
 		l.ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 	}
 }
@@ -56,7 +59,7 @@ func (l *LuxContext) Reply(contentType string, data []byte) {
 func (l *LuxContext) ReplyProtobuf(data proto.Message) {
 	buf, err := proto.Marshal(data)
 	if err != nil {
-		l.Log.Write(SYSTEM, log.New(loglevel.Error, err.Error()).End())
+		l.Log.Write(logger.SYSTEM, log.New(loglevel.Error, err.Error()).End())
 		l.ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 	}
 	l.Reply("application/protobuf", buf)
@@ -115,7 +118,13 @@ func (l *LuxContext) GetFile(name, path string) error {
 	if err != nil {
 		return fmt.Errorf("lux.GetFile: %w", err)
 	}
-	if err := fasthttp.SaveMultipartFile(f, path); err != nil {
+	fmt.Println(filepath.Join(path, f.Filename))
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.MkdirAll(path, 0755); err != nil {
+			return fmt.Errorf("lux.GetFile: %w", err)
+		}
+	}
+	if err := fasthttp.SaveMultipartFile(f, filepath.Join(path, f.Filename)); err != nil {
 		return fmt.Errorf("lux.GetFile: %w", err)
 	}
 	return nil
