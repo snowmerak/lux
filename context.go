@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/fasthttp/websocket"
 	"github.com/snowmerak/logstream/log"
 	"github.com/snowmerak/logstream/log/loglevel"
 	"github.com/snowmerak/lux/logger"
@@ -172,4 +173,14 @@ func (l *LuxContext) GetParam(name string) string {
 		return ""
 	}
 	return data
+}
+
+func (l *LuxContext) UpgradeWebSocket(upgrader websocket.FastHTTPUpgrader, handler func(*LuxContext, *websocket.Conn)) error {
+	err := upgrader.Upgrade(l.ctx, func(c *websocket.Conn) {
+		handler(l, c)
+	})
+	if err != nil {
+		return fmt.Errorf("lux.UpgradeWebSocket: %w", err)
+	}
+	return nil
 }
