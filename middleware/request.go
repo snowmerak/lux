@@ -1,6 +1,11 @@
 package middleware
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io"
+	"log"
+
 	"github.com/golang/snappy"
 	"github.com/valyala/fasthttp"
 )
@@ -31,13 +36,33 @@ func DecompressSnappy(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 
 func DecompressGzip(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 	if string(ctx.Request.Header.Peek("Content-Encoding")) == "gzip" {
-		body, err := ctx.Request.BodyGunzip()
+		reader, err := gzip.NewReader(bytes.NewReader(ctx.Request.Body()))
 		if err != nil {
+			log.Println(string(ctx.Path()) + ": " + err.Error())
+			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+			return ctx
+		}
+		defer reader.Close()
+		ctx.Request.ResetBody()
+		buf := make([]byte, 1024)
+		for {
+			p, err := reader.Read(buf)
+			if err != nil {
+				if err != io.EOF {
+					log.Println(string(ctx.Path()) + ": " + err.Error())
+				}
+				break
+			}
+			ctx.Request.AppendBody(buf[:p])
+		}
+		if err != nil {
+			log.Println(string(ctx.Path()) + ": " + err.Error())
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 			return ctx
 		}
 		ctx.Request.Header.DelBytes([]byte("Content-Encoding"))
-		ctx.Request.SetBody(body)
 	}
 	return ctx
 }
+
+func DecompressBrotli(ctx *fasthttp.RequestCtx)
