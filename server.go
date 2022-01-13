@@ -30,3 +30,8 @@ func (l *Lux) SetReadTimeout(timeout time.Duration) {
 func (l *Lux) SetWriteTimeout(timeout time.Duration) {
 	l.server.WriteTimeout = timeout
 }
+
+func (l *Lux) ListenAndServe(addr string) error {
+	l.server.Handler = l.router.Handler
+	return l.server.ListenAndServe(addr)
+}
