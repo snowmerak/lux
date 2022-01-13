@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/fasthttp/websocket"
 	"github.com/snowmerak/logstream/log"
@@ -213,4 +214,18 @@ func (l *LuxContext) UpgradeWebSocket(upgrader websocket.FastHTTPUpgrader, handl
 		return fmt.Errorf("lux.UpgradeWebSocket: %w", err)
 	}
 	return nil
+}
+
+func (l *LuxContext) SetCookie(key, value string, expireAt time.Time, httpOnly, secure bool) {
+	ck := fasthttp.AcquireCookie()
+	ck.SetKey(key)
+	ck.SetValue(value)
+	ck.SetHTTPOnly(httpOnly)
+	ck.SetSecure(secure)
+	ck.SetExpire(expireAt)
+	l.ctx.Response.Header.SetCookie(ck)
+}
+
+func (l *LuxContext) GetCookie(key string) string {
+	return string(l.ctx.Request.Header.Cookie(key))
 }
