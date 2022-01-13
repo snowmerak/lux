@@ -154,16 +154,16 @@ func (l *LuxContext) GetFile(name string) (*multipart.FileHeader, error) {
 func (l *LuxContext) SaveFile(name, path string) error {
 	f, err := l.ctx.FormFile(name)
 	if err != nil {
-		return fmt.Errorf("lux.GetFile: %w", err)
+		return fmt.Errorf("lux.SaveFile: %w", err)
 	}
 	fmt.Println(filepath.Join(path, f.Filename))
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.MkdirAll(path, 0755); err != nil {
-			return fmt.Errorf("lux.GetFile: %w", err)
+			return fmt.Errorf("lux.SaveFile: %w", err)
 		}
 	}
 	if err := fasthttp.SaveMultipartFile(f, filepath.Join(path, f.Filename)); err != nil {
-		return fmt.Errorf("lux.GetFile: %w", err)
+		return fmt.Errorf("lux.SaveFile: %w", err)
 	}
 	return nil
 }
