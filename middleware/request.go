@@ -73,3 +73,18 @@ func DecompressBrotli(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 	}
 	return ctx
 }
+
+func Authenticate(ctx *fasthttp.RequestCtx, tokenChecker func(authorization []byte, tokenCookie []byte) error) Middleware {
+	return func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+		token, cookie := ctx.Request.Header.Peek("Authorization"), ctx.Request.Header.Cookie("token")
+		if token == nil {
+			ctx.Response.SetStatusCode(fasthttp.StatusUnauthorized)
+			return ctx
+		}
+		if err := tokenChecker(token, cookie); err != nil {
+			ctx.Response.SetStatusCode(fasthttp.StatusUnauthorized)
+			return ctx
+		}
+		return ctx
+	}
+}
