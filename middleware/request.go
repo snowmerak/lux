@@ -4,22 +4,16 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
-	"log"
 
+	"github.com/andybalholm/brotli"
 	"github.com/golang/snappy"
+	"github.com/snowmerak/logstream/log"
+	"github.com/snowmerak/logstream/log/loglevel"
+	"github.com/snowmerak/lux/logger"
 	"github.com/valyala/fasthttp"
 )
 
-//LimitBody: Limit the size of the body. If the body is bigger than the limit, set the status code to 413 and return an error.
-//unit: bytes
-func LimitBody(size int) Middleware {
-	return func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-		if len(ctx.Request.Body()) > size {
-			ctx.Response.SetStatusCode(fasthttp.StatusRequestEntityTooLarge)
-		}
-		return ctx
-	}
-}
+const MIDDLEWARE = "middleware"
 
 func DecompressSnappy(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 	if string(ctx.Request.Header.Peek("Content-Encoding")) == "snappy" {
@@ -38,7 +32,7 @@ func DecompressGzip(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 	if string(ctx.Request.Header.Peek("Content-Encoding")) == "gzip" {
 		reader, err := gzip.NewReader(bytes.NewReader(ctx.Request.Body()))
 		if err != nil {
-			log.Println(string(ctx.Path()) + ": " + err.Error())
+			logger.Write(MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 			return ctx
 		}
@@ -49,20 +43,33 @@ func DecompressGzip(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 			p, err := reader.Read(buf)
 			if err != nil {
 				if err != io.EOF {
-					log.Println(string(ctx.Path()) + ": " + err.Error())
+					logger.Write(MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
 				}
 				break
 			}
 			ctx.Request.AppendBody(buf[:p])
-		}
-		if err != nil {
-			log.Println(string(ctx.Path()) + ": " + err.Error())
-			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			return ctx
 		}
 		ctx.Request.Header.DelBytes([]byte("Content-Encoding"))
 	}
 	return ctx
 }
 
-func DecompressBrotli(ctx *fasthttp.RequestCtx)
+func DecompressBrotli(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+	if string(ctx.Request.Header.Peek("Content-Encoding")) == "br" {
+		ctx.Request.Header.DelBytes([]byte("Content-Encoding"))
+		reader := brotli.NewReader(bytes.NewReader(ctx.Request.Body()))
+		ctx.Request.ResetBody()
+		buf := make([]byte, 1024)
+		for {
+			p, err := reader.Read(buf)
+			if err != nil {
+				if err != io.EOF {
+					logger.Write(MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
+				}
+				break
+			}
+			ctx.Request.AppendBody(buf[:p])
+		}
+	}
+	return ctx
+}
