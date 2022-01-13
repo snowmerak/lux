@@ -137,3 +137,11 @@ func (l *LuxContext) GetForm(name string) string {
 func (l *LuxContext) GetPostArgs(name string) string {
 	return string(l.ctx.PostArgs().Peek(name))
 }
+
+func (l *LuxContext) GetParam(name string) string {
+	data, ok := l.ctx.UserValue(name).(string)
+	if !ok {
+		return ""
+	}
+	return data
+}
