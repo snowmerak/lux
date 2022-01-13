@@ -113,6 +113,34 @@ func (l *LuxContext) ReplyFile(path string) {
 	l.ctx.SendFile(path)
 }
 
+func (l *LuxContext) SetStatus(status int) {
+	l.ctx.SetStatusCode(status)
+}
+
+func (l *LuxContext) BadRequest() {
+	l.SetStatus(fasthttp.StatusBadRequest)
+}
+
+func (l *LuxContext) NotFound() {
+	l.SetStatus(fasthttp.StatusNotFound)
+}
+
+func (l *LuxContext) InternalServerError() {
+	l.SetStatus(fasthttp.StatusInternalServerError)
+}
+
+func (l *LuxContext) NotImplemented() {
+	l.SetStatus(fasthttp.StatusNotImplemented)
+}
+
+func (l *LuxContext) Unauthorized() {
+	l.SetStatus(fasthttp.StatusUnauthorized)
+}
+
+func (l *LuxContext) Forbidden() {
+	l.SetStatus(fasthttp.StatusForbidden)
+}
+
 func (l *LuxContext) GetFile(name, path string) error {
 	f, err := l.ctx.FormFile(name)
 	if err != nil {
