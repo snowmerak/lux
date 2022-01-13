@@ -2,10 +2,13 @@ package middleware
 
 import (
 	"compress/gzip"
-	"log"
+
 	"strings"
 
 	"github.com/golang/snappy"
+	"github.com/snowmerak/logstream/log"
+	"github.com/snowmerak/logstream/log/loglevel"
+	"github.com/snowmerak/lux/logger"
 	"github.com/valyala/fasthttp"
 )
 
@@ -45,6 +48,12 @@ func AllowCredentials(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 }
 
 func CompressSnappy(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+	defer func() {
+		if err, ok := recover().(error); ok && err != nil {
+			logger.Write(MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
+			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+		}
+	}()
 	if string(ctx.Request.Header.Peek("Content-Encoding")) != "snappy" {
 		body := snappy.Encode(nil, ctx.Request.Body())
 		ctx.Request.SetBody(body)
@@ -58,12 +67,28 @@ func CompressGzip(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 		body := ctx.Response.Body()
 		ctx.Response.ResetBody()
 		writer := gzip.NewWriter(ctx.Response.BodyWriter())
+		defer writer.Close()
 		if _, err := writer.Write(body); err != nil {
-			log.Println(string(ctx.Path()) + ": " + err.Error())
+			logger.Write(MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
 			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 			return ctx
 		}
 		ctx.Request.Header.Set("Content-Encoding", "gzip")
+	}
+	return ctx
+}
+
+func CompressBrotli(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+	if string(ctx.Request.Header.Peek("Content-Encoding")) != "br" {
+		body := ctx.Response.Body()
+		ctx.Response.ResetBody()
+		writer := ctx.Response.BodyWriter()
+		if _, err := writer.Write(body); err != nil {
+			logger.Write(MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
+			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+			return ctx
+		}
+		ctx.Request.Header.Set("Content-Encoding", "br")
 	}
 	return ctx
 }
