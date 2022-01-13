@@ -1,6 +1,6 @@
 module github.com/snowmerak/lux
 
-go 1.18
+go 1.16
 
 require (
 	github.com/snowmerak/logstream v1.2.2
