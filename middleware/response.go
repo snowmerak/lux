@@ -18,6 +18,7 @@ func CORS(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 	ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
 	ctx.Response.Header.Set("Access-Control-Allow-Headers", "*")
 	ctx.Response.Header.Set("Access-Control-Allow-Methods", "*")
+	ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
 	return ctx
 }
 
