@@ -2,6 +2,7 @@ package lux
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/snowmerak/logstream/log"
@@ -29,6 +30,10 @@ func (l *LuxContext) ReplyPlainText(data string) {
 	l.ctx.SetStatusCode(fasthttp.StatusOK)
 	l.ctx.Response.Header.Set("Content-Length", strconv.FormatInt(int64(len(data)), 10))
 	l.ctx.Response.SetBodyString(data)
+}
+
+func (l *LuxContext) ReplyString(data string) {
+	l.ReplyPlainText(data)
 }
 
 func (l *LuxContext) ReplyJSON(data interface{}) {
@@ -103,4 +108,23 @@ func (l *LuxContext) ReplyPNG(data []byte) {
 
 func (l *LuxContext) ReplyFile(path string) {
 	l.ctx.SendFile(path)
+}
+
+func (l *LuxContext) GetFile(name, path string) error {
+	f, err := l.ctx.FormFile(name)
+	if err != nil {
+		return fmt.Errorf("lux.GetFile: %w", err)
+	}
+	if err := fasthttp.SaveMultipartFile(f, path); err != nil {
+		return fmt.Errorf("lux.GetFile: %w", err)
+	}
+	return nil
+}
+
+func (l *LuxContext) GetForm(name string) string {
+	return string(l.ctx.FormValue(name))
+}
+
+func (l *LuxContext) GetPostArgs(name string) string {
+	return string(l.ctx.PostArgs().Peek(name))
 }
