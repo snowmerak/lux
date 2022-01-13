@@ -100,3 +100,7 @@ func (l *LuxContext) ReplyJPEG(data []byte) {
 func (l *LuxContext) ReplyPNG(data []byte) {
 	l.Reply("image/png", data)
 }
+
+func (l *LuxContext) ReplyFile(path string) {
+	l.ctx.SendFile(path)
+}
