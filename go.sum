@@ -27,6 +27,8 @@ github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2/go.mod h1:SqUrOPUn
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/fasthttp/router v1.4.5 h1:YZonsKCssEwEi3veDMhL6okIx550qegAiuXAK8NnM3Y=
 github.com/fasthttp/router v1.4.5/go.mod h1:UYExWhCy7pUmavRZ0XfjEgHwzxyKwyS8uzXhaTRDG9Y=
+github.com/fasthttp/websocket v1.4.5 h1:ltwzbicb8Oz5wSrLdPRYBNKcHH94NmLBw3YPlgIPPUg=
+github.com/fasthttp/websocket v1.4.5/go.mod h1:Yj4Z4kFdJmIFWiRcT8yb3/lov94g2w77KcsDfJPyhJk=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
