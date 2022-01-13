@@ -3,6 +3,7 @@ package lux
 import (
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -142,7 +143,15 @@ func (l *LuxContext) Forbidden() {
 	l.SetStatus(fasthttp.StatusForbidden)
 }
 
-func (l *LuxContext) GetFile(name, path string) error {
+func (l *LuxContext) GetFile(name string) (*multipart.FileHeader, error) {
+	file, err := l.ctx.FormFile(name)
+	if err != nil {
+		return nil, fmt.Errorf("lux.GetFile: %w", err)
+	}
+	return file, nil
+}
+
+func (l *LuxContext) SaveFile(name, path string) error {
 	f, err := l.ctx.FormFile(name)
 	if err != nil {
 		return fmt.Errorf("lux.GetFile: %w", err)
@@ -155,6 +164,27 @@ func (l *LuxContext) GetFile(name, path string) error {
 	}
 	if err := fasthttp.SaveMultipartFile(f, filepath.Join(path, f.Filename)); err != nil {
 		return fmt.Errorf("lux.GetFile: %w", err)
+	}
+	return nil
+}
+
+func (l *LuxContext) GetFiles(name string) ([]*multipart.FileHeader, error) {
+	parts, err := l.ctx.MultipartForm()
+	if err != nil {
+		return nil, fmt.Errorf("lux.GetFiles: %w", err)
+	}
+	return parts.File[name], nil
+}
+
+func (l *LuxContext) SaveFiles(name string, path string) error {
+	files, err := l.GetFiles(name)
+	if err != nil {
+		return fmt.Errorf("lux.SaveFiles: %w", err)
+	}
+	for _, file := range files {
+		if err := fasthttp.SaveMultipartFile(file, filepath.Join(path, file.Filename)); err != nil {
+			return fmt.Errorf("lux.SaveFiles: %w", err)
+		}
 	}
 	return nil
 }
