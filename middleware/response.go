@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"compress/gzip"
+	"log"
 	"strings"
 
 	"github.com/golang/snappy"
@@ -47,6 +49,21 @@ func CompressSnappy(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 		body := snappy.Encode(nil, ctx.Request.Body())
 		ctx.Request.SetBody(body)
 		ctx.Request.Header.Set("Content-Encoding", "snappy")
+	}
+	return ctx
+}
+
+func CompressGzip(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+	if string(ctx.Request.Header.Peek("Content-Encoding")) != "gzip" {
+		body := ctx.Response.Body()
+		ctx.Response.ResetBody()
+		writer := gzip.NewWriter(ctx.Response.BodyWriter())
+		if _, err := writer.Write(body); err != nil {
+			log.Println(string(ctx.Path()) + ": " + err.Error())
+			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+			return ctx
+		}
+		ctx.Request.Header.Set("Content-Encoding", "gzip")
 	}
 	return ctx
 }
