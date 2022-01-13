@@ -15,11 +15,16 @@ type LuxContext struct {
 	Log Logger
 }
 
+func (l *LuxContext) Ok() bool {
+	status := l.ctx.Response.StatusCode()
+	return 200 <= status && status < 400
+}
+
 func (l *LuxContext) Redirect(url string) {
 	l.ctx.Redirect(url, fasthttp.StatusMovedPermanently)
 }
 
-func (l *LuxContext) ReplyPlain(data string) {
+func (l *LuxContext) ReplyPlainText(data string) {
 	l.ctx.SetContentType("text/plain")
 	l.ctx.SetStatusCode(fasthttp.StatusOK)
 	l.ctx.Response.Header.Set("Content-Length", strconv.FormatInt(int64(len(data)), 10))
