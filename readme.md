@@ -59,3 +59,33 @@ func main() {
 	}
 }
 ```
+
+### simple graphql get
+
+```go
+package main
+
+import (
+	"github.com/graphql-go/graphql"
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/middleware"
+)
+
+func main() {
+	app := lux.NewServer()
+	root := app.RouterGroup("")
+	root.UseResponse(middleware.CORS, middleware.CompressBrotli)
+	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
+	root.GraphGet("", graphql.Fields{
+		"hello": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return "world", nil
+			},
+		},
+	})
+	if err := app.ListenAndServe(":8080"); err != nil {
+		panic(err)
+	}
+}
+```
