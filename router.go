@@ -1,11 +1,14 @@
 package lux
 
 import (
+	"encoding/base64"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strings"
 
 	"github.com/fasthttp/router"
+	"github.com/graphql-go/graphql"
 	"github.com/snowmerak/logstream/log"
 	"github.com/snowmerak/logstream/log/loglevel"
 	"github.com/snowmerak/lux/logger"
@@ -310,4 +313,28 @@ func GetContentTypeFromExt(ext string) string {
 		contentType = "text/tab-separated-values"
 	}
 	return contentType
+}
+
+func (r *RouterGroup) GraphGet(path string, fields graphql.Fields) {
+	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
+	schemeConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	scheme, err := graphql.NewSchema(schemeConfig)
+	if err != nil {
+		panic(fmt.Errorf("failed to create new graphql schema, %v", err))
+	}
+
+	r.Get(path, func(lc *LuxContext) {
+		query := lc.GetParam("query")
+		fmt.Println(query)
+		buf, err := base64.RawURLEncoding.DecodeString(query)
+		if err == nil {
+			query = string(buf)
+		}
+		params := graphql.Params{Schema: scheme, RequestString: query}
+		result := graphql.Do(params)
+		if len(result.Errors) > 0 {
+			lc.Log.Write(logger.SYSTEM, log.New(loglevel.Warn, "graphql error: "+result.Errors[0].Error()).End())
+		}
+		lc.ReplyJSON(result)
+	})
 }
