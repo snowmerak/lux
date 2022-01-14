@@ -199,6 +199,10 @@ func (l *LuxContext) GetPostArgs(name string) string {
 }
 
 func (l *LuxContext) GetParam(name string) string {
+	return string(l.ctx.QueryArgs().Peek(name))
+}
+
+func (l *LuxContext) GetRouteValue(name string) string {
 	data, ok := l.ctx.UserValue(name).(string)
 	if !ok {
 		return ""
