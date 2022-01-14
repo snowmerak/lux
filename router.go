@@ -325,7 +325,6 @@ func (r *RouterGroup) GraphGet(path string, fields graphql.Fields) {
 
 	r.Get(path, func(lc *LuxContext) {
 		query := lc.GetParam("query")
-		fmt.Println(query)
 		buf, err := base64.RawURLEncoding.DecodeString(query)
 		if err == nil {
 			query = string(buf)
