@@ -21,6 +21,9 @@ const PUT = "PUT"
 const PATCH = "PATCH"
 const OPTIONS = "OPTIONS"
 
+var AllowAllOrigin = []string{"*"}
+var DefaultPreflightHeaders = []string{"Origin", "Accept", "Content-Type"}
+
 type RouterGroup struct {
 	group              *router.Group
 	requestMiddlewares []middleware.Middleware
