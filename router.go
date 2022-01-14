@@ -123,6 +123,40 @@ func (r *RouterGroup) Options(path string, handler Handler) *Router {
 	return r.Handle(OPTIONS, path, handler)
 }
 
+func (r *RouterGroup) Preflight(allowOrigins []string, allowMethods []string, allowHeaders []string) {
+	r.group.OPTIONS("", func(ctx *fasthttp.RequestCtx) {
+		origin := string(ctx.Request.Header.Peek("Origin"))
+		for _, o := range allowOrigins {
+			if o == "*" {
+				origin = "*"
+			}
+			if o == origin {
+				ctx.Response.Header.Set("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
+		method := string(ctx.Request.Header.Peek("Access-Control-Request-Method"))
+		for _, m := range allowMethods {
+			if m == method {
+				ctx.Response.Header.Set("Access-Control-Allow-Methods", method)
+				break
+			}
+		}
+		headers := strings.Split(string(ctx.Request.Header.Peek("Access-Control-Request-Headers")), ",")
+		for _, h := range headers {
+			for _, a := range allowHeaders {
+				if a == h {
+					ctx.Response.Header.Add("Access-Control-Allow-Headers", h)
+					break
+				}
+			}
+		}
+		ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
+		ctx.Response.Header.Set("Access-Control-Max-Age", "1728000")
+		ctx.Response.SetStatusCode(200)
+	})
+}
+
 func (r *RouterGroup) Statics(path string, root string) {
 	if path == "" {
 		path = "/"
