@@ -128,7 +128,8 @@ func (r *RouterGroup) Preflight(allowOrigins []string, allowMethods []string, al
 		origin := string(ctx.Request.Header.Peek("Origin"))
 		for _, o := range allowOrigins {
 			if o == "*" {
-				origin = "*"
+				ctx.Response.Header.Set("Access-Control-Allow-Origin", origin)
+				break
 			}
 			if o == origin {
 				ctx.Response.Header.Set("Access-Control-Allow-Origin", origin)
