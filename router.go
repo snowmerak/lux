@@ -163,20 +163,20 @@ func (r *RouterGroup) Embedded(path string, embedded fs.FS) {
 		}
 		file, err := embedded.Open(path)
 		if err != nil {
-			lc.Log.Write(logger.SYSTEM, log.New(loglevel.Warn, "open file error: "+err.Error()).End())
+			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "open file error: "+err.Error()).End())
 			lc.ctx.Response.Header.SetStatusCode(fasthttp.StatusNotFound)
 			return
 		}
 		stats, err := file.Stat()
 		if err != nil {
-			lc.Log.Write(logger.SYSTEM, log.New(loglevel.Warn, "read file status: "+err.Error()).End())
+			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "read file status: "+err.Error()).End())
 			lc.ctx.Response.Header.SetStatusCode(fasthttp.StatusNotFound)
 			return
 		}
 		buf := make([]byte, stats.Size())
 		_, err = file.Read(buf)
 		if err != nil {
-			lc.Log.Write(logger.SYSTEM, log.New(loglevel.Warn, "read file error: "+err.Error()).End())
+			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "read file error: "+err.Error()).End())
 			lc.ctx.Response.Header.SetStatusCode(fasthttp.StatusNotFound)
 			return
 		}
@@ -306,7 +306,7 @@ func (r *RouterGroup) GraphGet(path string, fields graphql.Fields) {
 		params := graphql.Params{Schema: scheme, RequestString: query}
 		result := graphql.Do(params)
 		if len(result.Errors) > 0 {
-			lc.Log.Write(logger.SYSTEM, log.New(loglevel.Warn, "graphql error: "+result.Errors[0].Error()).End())
+			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "graphql error: "+result.Errors[0].Error()).End())
 		}
 		lc.ReplyJSON(result)
 	})
