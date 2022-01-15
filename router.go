@@ -41,12 +41,9 @@ func (l *Lux) RouterGroup(path ...string) *RouterGroup {
 	}
 }
 
-func (r *RouterGroup) Use(middlewaremakes ...middleware.MiddlewareMake) *RouterGroup {
-	for _, m := range middlewaremakes {
-		if m == nil {
-			continue
-		}
-		req, res := m()
+func (r *RouterGroup) Use(middlewareset ...middleware.MiddlewareSet) *RouterGroup {
+	for _, m := range middlewareset {
+		req, res := m.Request, m.Response
 		if req != nil {
 			r.requestMiddlewares = append(r.requestMiddlewares, req)
 		}
