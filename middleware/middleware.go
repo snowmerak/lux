@@ -154,6 +154,6 @@ func Authenticate(tokenChecker func(authorization []byte, tokenCookie []byte) er
 			}
 			return ctx
 		},
-		nil
+		nil,
 	}
 }
