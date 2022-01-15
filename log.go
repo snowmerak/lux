@@ -18,10 +18,14 @@ func init() {
 	logger.Observe(middleware.MIDDLEWARE, stdout.New(context.Background(), loglevel.All, nil))
 }
 
-func (l Logger) Write(topic string, log log.Log) error {
+func (l Logger) WriteLog(topic string, log log.Log) error {
 	return logger.Write(topic, log)
 }
 
 func (l Logger) Observe(topic string, writers ...writable.Writable) error {
 	return logger.Observe(topic, writers...)
+}
+
+func (l Logger) Write(topic string, level loglevel.LogLevel, message string) error {
+	return logger.Write(topic, log.New(level, message).End())
 }
