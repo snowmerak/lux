@@ -47,7 +47,7 @@ func (l *LuxContext) ReplyJSON(data interface{}) {
 	l.ctx.SetStatusCode(fasthttp.StatusOK)
 	encoder := json.NewEncoder(l.ctx.Response.BodyWriter())
 	if err := encoder.Encode(data); err != nil {
-		l.Log.Write(logger.SYSTEM, log.New(loglevel.Error, err.Error()).End())
+		l.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Error, err.Error()).End())
 		l.ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 	}
 }
@@ -62,7 +62,7 @@ func (l *LuxContext) Reply(contentType string, data []byte) {
 func (l *LuxContext) ReplyProtobuf(data proto.Message) {
 	buf, err := proto.Marshal(data)
 	if err != nil {
-		l.Log.Write(logger.SYSTEM, log.New(loglevel.Error, err.Error()).End())
+		l.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Error, err.Error()).End())
 		l.ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 	}
 	l.Reply("application/protobuf", buf)
