@@ -15,7 +15,7 @@ import (
 func main() {
 	app := lux.NewServer()
 	root := app.RouterGroup("")
-	root.UseResponse(middleware.CORS, middleware.CompressBrotli)
+	root.Use(middleware.CORS(), middleware.CompressBrotli())
 	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
 	root.Get("{name?}", func(lc *lux.LuxContext) {
 		greeting := "Hello!"
@@ -44,7 +44,7 @@ import (
 func main() {
 	app := lux.NewServer()
 	root := app.RouterGroup("")
-	root.UseResponse(middleware.CORS, middleware.CompressBrotli)
+	root.Use(middleware.CORS(), middleware.CompressBrotli())
 	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
 	root.Get("{name?}", func(lc *lux.LuxContext) {
 		greeting := "Hello!"
@@ -74,7 +74,7 @@ import (
 func main() {
 	app := lux.NewServer()
 	root := app.RouterGroup("")
-	root.UseResponse(middleware.CORS, middleware.CompressBrotli)
+	root.Use(middleware.CORS(), middleware.CompressBrotli())
 	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
 	root.GraphGet("", graphql.Fields{
 		"hello": &graphql.Field{
