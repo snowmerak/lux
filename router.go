@@ -1,10 +1,13 @@
 package lux
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/fasthttp/router"
@@ -289,7 +292,7 @@ func GetContentTypeFromExt(ext string) string {
 	return contentType
 }
 
-func (r *RouterGroup) GraphGet(path string, fields graphql.Fields) {
+func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
 	schemeConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
 	scheme, err := graphql.NewSchema(schemeConfig)
@@ -309,5 +312,27 @@ func (r *RouterGroup) GraphGet(path string, fields graphql.Fields) {
 			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "graphql error: "+result.Errors[0].Error()).End())
 		}
 		lc.ReplyJSON(result)
+	})
+}
+
+func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{}) {
+	template, err := template.New("html").Parse(tmp)
+	if err != nil {
+		panic(fmt.Errorf("failed to create new template, %v", err))
+	}
+	typ := reflect.TypeOf(data)
+	r.Get(path, func(lc *LuxContext) {
+		defer func() {
+			if err := recover(); err != nil {
+				lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Error, "template error: "+fmt.Sprint(err)).End())
+			}
+		}()
+		val := reflect.New(typ).Elem()
+		for i := 0; i < val.NumField(); i++ {
+			val.Field(i).Set(reflect.ValueOf(lc.GetParam(val.Type().Field(i).Name)))
+		}
+		buf := bytes.NewBuffer(nil)
+		template.Execute(buf, val.Interface())
+		lc.ReplyHTML(buf.Bytes())
 	})
 }
