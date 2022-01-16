@@ -158,7 +158,7 @@ func Authenticate(tokenChecker func(authorization []byte, tokenCookie []byte) er
 	}
 }
 
-func SetStaticAllowIPs(ips ...string) MiddlewareSet {
+func AllowStaticIPs(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
 		cache[ip] = struct{}{}
@@ -176,7 +176,7 @@ func SetStaticAllowIPs(ips ...string) MiddlewareSet {
 	}
 }
 
-func SetStaticBlockIPs(ips ...string) MiddlewareSet {
+func BlockStaticIPs(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
 		cache[ip] = struct{}{}
@@ -194,7 +194,7 @@ func SetStaticBlockIPs(ips ...string) MiddlewareSet {
 	}
 }
 
-func SetDynamicAllowIPs(checker func(ip string) bool) MiddlewareSet {
+func AllowDynamicIPs(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 			if checker(ctx.RemoteIP().String()) {
@@ -208,7 +208,7 @@ func SetDynamicAllowIPs(checker func(ip string) bool) MiddlewareSet {
 	}
 }
 
-func SetDynamicBlockIPs(checker func(ip string) bool) MiddlewareSet {
+func BlockDynamicIPs(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 			if checker(ctx.RemoteIP().String()) {
@@ -222,7 +222,7 @@ func SetDynamicBlockIPs(checker func(ip string) bool) MiddlewareSet {
 	}
 }
 
-func SetStaticAllowPorts(ports ...string) MiddlewareSet {
+func AllowStaticPorts(ports ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, port := range ports {
 		cache[port] = struct{}{}
@@ -245,7 +245,7 @@ func SetStaticAllowPorts(ports ...string) MiddlewareSet {
 	}
 }
 
-func SetStaticBlockPorts(ports ...string) MiddlewareSet {
+func BlockStaticPorts(ports ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, port := range ports {
 		cache[port] = struct{}{}
