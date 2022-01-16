@@ -10,7 +10,7 @@ require (
 require github.com/fasthttp/websocket v1.4.5
 
 require (
-	github.com/andybalholm/brotli v1.0.4
+	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/caddyserver/certmagic v0.15.2
 	github.com/fasthttp/router v1.4.5
 	github.com/golang/snappy v0.0.4
