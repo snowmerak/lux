@@ -1,7 +1,6 @@
 package lux
 
-const banner = `
-_     _    ___  _                                         
+const banner = `_     _    ___  _                                         
 / \   / \ /\\  \//                                         
 | |   | | || \  /                                          
 | |_/\| \_/| /  \                                          
