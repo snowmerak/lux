@@ -158,14 +158,14 @@ func Authenticate(tokenChecker func(authorization []byte, tokenCookie []byte) er
 	}
 }
 
-func SetStaticAllowListIP(ips []string) MiddlewareSet {
+func SetStaticAllowListIP(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
 		cache[ip] = struct{}{}
 	}
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-			if _, ok := cache[string(ctx.RemoteIP())]; ok {
+			if _, ok := cache[ctx.RemoteIP().String()]; ok {
 				ctx.Response.SetStatusCode(fasthttp.StatusOK)
 				return ctx
 			}
@@ -176,14 +176,14 @@ func SetStaticAllowListIP(ips []string) MiddlewareSet {
 	}
 }
 
-func SetStaticBlockListIP(ips []string) MiddlewareSet {
+func SetStaticBlockListIP(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
 		cache[ip] = struct{}{}
 	}
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-			if _, ok := cache[string(ctx.RemoteIP())]; ok {
+			if _, ok := cache[ctx.RemoteIP().String()]; ok {
 				ctx.Response.SetStatusCode(fasthttp.StatusForbidden)
 				return ctx
 			}
@@ -197,7 +197,7 @@ func SetStaticBlockListIP(ips []string) MiddlewareSet {
 func SetDynamicAllowListIP(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-			if checker(string(ctx.RemoteIP())) {
+			if checker(ctx.RemoteIP().String()) {
 				ctx.Response.SetStatusCode(fasthttp.StatusOK)
 				return ctx
 			}
@@ -211,7 +211,7 @@ func SetDynamicAllowListIP(checker func(ip string) bool) MiddlewareSet {
 func SetDynamicBlockListIP(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-			if checker(string(ctx.RemoteIP())) {
+			if checker(ctx.RemoteIP().String()) {
 				ctx.Response.SetStatusCode(fasthttp.StatusForbidden)
 				return ctx
 			}
