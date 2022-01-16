@@ -76,7 +76,7 @@ func main() {
 	root := app.RouterGroup("")
 	root.Use(middleware.CORS(), middleware.CompressBrotli())
 	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
-	root.GraphGet("", graphql.Fields{
+	root.GetGraph("", graphql.Fields{
 		"hello": &graphql.Field{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -84,6 +84,28 @@ func main() {
 			},
 		},
 	})
+	if err := app.ListenAndServe(":8080"); err != nil {
+		panic(err)
+	}
+}
+```
+
+### simple template get
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/middleware"
+)
+
+func main() {
+	app := lux.NewServer()
+	root := app.RouterGroup("")
+	root.Use(middleware.CORS(), middleware.CompressBrotli())
+	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
+	root.GetTemplateHTML("", "Hello, {{.Name}}!", struct{ Name string }{Name: "World"})
 	if err := app.ListenAndServe(":8080"); err != nil {
 		panic(err)
 	}
