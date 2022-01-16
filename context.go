@@ -233,3 +233,7 @@ func (l *LuxContext) SetCookie(key, value string, expireAt time.Time, httpOnly, 
 func (l *LuxContext) GetCookie(key string) string {
 	return string(l.ctx.Request.Header.Cookie(key))
 }
+
+func (l *LuxContext) GetIP() string {
+	return l.ctx.RemoteIP().String()
+}
