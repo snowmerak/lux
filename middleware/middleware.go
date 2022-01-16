@@ -158,7 +158,7 @@ func Authenticate(tokenChecker func(authorization []byte, tokenCookie []byte) er
 	}
 }
 
-func SetStaticAllowListIP(ips ...string) MiddlewareSet {
+func SetStaticAllowIPs(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
 		cache[ip] = struct{}{}
@@ -176,7 +176,7 @@ func SetStaticAllowListIP(ips ...string) MiddlewareSet {
 	}
 }
 
-func SetStaticBlockListIP(ips ...string) MiddlewareSet {
+func SetStaticBlockIPs(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
 		cache[ip] = struct{}{}
@@ -194,7 +194,7 @@ func SetStaticBlockListIP(ips ...string) MiddlewareSet {
 	}
 }
 
-func SetDynamicAllowListIP(checker func(ip string) bool) MiddlewareSet {
+func SetDynamicAllowIPs(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 			if checker(ctx.RemoteIP().String()) {
@@ -208,10 +208,56 @@ func SetDynamicAllowListIP(checker func(ip string) bool) MiddlewareSet {
 	}
 }
 
-func SetDynamicBlockListIP(checker func(ip string) bool) MiddlewareSet {
+func SetDynamicBlockIPs(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 			if checker(ctx.RemoteIP().String()) {
+				ctx.Response.SetStatusCode(fasthttp.StatusForbidden)
+				return ctx
+			}
+			ctx.Response.SetStatusCode(fasthttp.StatusOK)
+			return ctx
+		},
+		nil,
+	}
+}
+
+func SetStaticAllowPorts(ports ...string) MiddlewareSet {
+	cache := make(map[string]struct{})
+	for _, port := range ports {
+		cache[port] = struct{}{}
+	}
+	return MiddlewareSet{
+		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+			rip := ctx.RemoteAddr().String()
+			port := ""
+			if idx := strings.LastIndex(rip, ":"); idx > 0 {
+				port = rip[idx+1:]
+			}
+			if _, ok := cache[port]; ok {
+				ctx.Response.SetStatusCode(fasthttp.StatusOK)
+				return ctx
+			}
+			ctx.Response.SetStatusCode(fasthttp.StatusForbidden)
+			return ctx
+		},
+		nil,
+	}
+}
+
+func SetStaticBlockPorts(ports ...string) MiddlewareSet {
+	cache := make(map[string]struct{})
+	for _, port := range ports {
+		cache[port] = struct{}{}
+	}
+	return MiddlewareSet{
+		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
+			rip := ctx.RemoteAddr().String()
+			port := ""
+			if idx := strings.LastIndex(rip, ":"); idx > 0 {
+				port = rip[idx+1:]
+			}
+			if _, ok := cache[port]; ok {
 				ctx.Response.SetStatusCode(fasthttp.StatusForbidden)
 				return ctx
 			}
