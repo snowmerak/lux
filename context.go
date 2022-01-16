@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fasthttp/websocket"
@@ -236,4 +237,12 @@ func (l *LuxContext) GetCookie(key string) string {
 
 func (l *LuxContext) GetIP() string {
 	return l.ctx.RemoteIP().String()
+}
+
+func (l *LuxContext) GetPort() string {
+	rip := l.ctx.RemoteAddr().String()
+	if idx := strings.LastIndex(rip, ":"); idx > 0 {
+		return rip[idx+1:]
+	}
+	return ""
 }
