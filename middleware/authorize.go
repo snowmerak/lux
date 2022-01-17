@@ -2,6 +2,11 @@ package middleware
 
 import "github.com/valyala/fasthttp"
 
+/*
+Auth ...
+authorize middleware
+tokenChecker is consume authorization header and token cookie
+*/
 func Auth(tokenChecker func(authorizationHeader []byte, tokenCookie []byte) error) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {

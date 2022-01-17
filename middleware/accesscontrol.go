@@ -6,6 +6,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+/*
+AllowStaticIPs ...
+allow given IPs to access the server
+*/
 func AllowStaticIPs(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
@@ -24,6 +28,10 @@ func AllowStaticIPs(ips ...string) MiddlewareSet {
 	}
 }
 
+/*
+BlockStaticIPs ...
+block given IPs to access the server
+*/
 func BlockStaticIPs(ips ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, ip := range ips {
@@ -42,6 +50,10 @@ func BlockStaticIPs(ips ...string) MiddlewareSet {
 	}
 }
 
+/*
+AllowDynamicIPs ...
+allow IP address passed checker to access the server
+*/
 func AllowDynamicIPs(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
@@ -56,6 +68,10 @@ func AllowDynamicIPs(checker func(ip string) bool) MiddlewareSet {
 	}
 }
 
+/*
+BlockDynamicIPs ...
+block IP address passed checker to access the server
+*/
 func BlockDynamicIPs(checker func(ip string) bool) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
@@ -70,6 +86,10 @@ func BlockDynamicIPs(checker func(ip string) bool) MiddlewareSet {
 	}
 }
 
+/*
+AllowStaticPorts ...
+allow given ports to access the server
+*/
 func AllowStaticPorts(ports ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, port := range ports {
@@ -93,6 +113,10 @@ func AllowStaticPorts(ports ...string) MiddlewareSet {
 	}
 }
 
+/*
+BlockStaticPorts ...
+block given ports to access the server
+*/
 func BlockStaticPorts(ports ...string) MiddlewareSet {
 	cache := make(map[string]struct{})
 	for _, port := range ports {
