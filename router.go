@@ -33,17 +33,9 @@ var AllowAllOrigin = []string{"*"}
 var DefaultPreflightHeaders = []string{"Origin", "Accept", "Content-Type"}
 
 type RouterGroup struct {
-	group              *router.Group
-	requestMiddlewares []middleware.Middleware
-	responseMiddleware []middleware.Middleware
-}
-
-func (l *Lux) RouterGroup(path ...string) *RouterGroup {
-	group := l.router.Group("/" + strings.Join(path, "/"))
-	return &RouterGroup{
-		group:              group,
-		requestMiddlewares: []middleware.Middleware{},
-	}
+	group               *router.Group
+	requestMiddlewares  []middleware.Middleware
+	responseMiddlewares []middleware.Middleware
 }
 
 func (r *RouterGroup) Use(middlewareset ...middleware.MiddlewareSet) *RouterGroup {
@@ -53,7 +45,7 @@ func (r *RouterGroup) Use(middlewareset ...middleware.MiddlewareSet) *RouterGrou
 			r.requestMiddlewares = append(r.requestMiddlewares, req)
 		}
 		if res != nil {
-			r.responseMiddleware = append(r.responseMiddleware, res)
+			r.responseMiddlewares = append(r.responseMiddlewares, res)
 		}
 	}
 	return r
@@ -71,7 +63,7 @@ func (r *RouterGroup) Handle(method string, path string, handler Handler) {
 		if luxCtx.Ok() {
 			handler(luxCtx)
 		}
-		for _, m := range r.responseMiddleware {
+		for _, m := range r.responseMiddlewares {
 			if !luxCtx.Ok() {
 				return
 			}
