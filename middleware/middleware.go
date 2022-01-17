@@ -140,7 +140,7 @@ func CompressBrotli() MiddlewareSet {
 	}
 }
 
-func Authenticate(tokenChecker func(authorization []byte, tokenCookie []byte) error) MiddlewareSet {
+func Auth(tokenChecker func(authorization []byte, tokenCookie []byte) error) MiddlewareSet {
 	return MiddlewareSet{
 		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
 			token, cookie := ctx.Request.Header.Peek("Authorization"), ctx.Request.Header.Cookie("token")
