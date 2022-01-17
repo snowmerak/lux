@@ -3,6 +3,7 @@ package lux
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/caddyserver/certmagic"
@@ -25,6 +26,15 @@ func NewServer() *Lux {
 			Logger: logger.Logger{},
 		},
 		router: router.New(),
+	}
+}
+
+func (l *Lux) RouterGroup(path ...string) *RouterGroup {
+	group := l.router.Group("/" + strings.Join(path, "/"))
+	return &RouterGroup{
+		group:               group,
+		requestMiddlewares:  []middleware.Middleware{},
+		responseMiddlewares: []middleware.Middleware{},
 	}
 }
 
