@@ -21,23 +21,33 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-const GET = "GET"
-const POST = "POST"
-const HEAD = "HEAD"
-const DELETE = "DELETE"
-const PUT = "PUT"
-const PATCH = "PATCH"
-const OPTIONS = "OPTIONS"
+const (
+	GET     = "GET"
+	POST    = "POST"
+	HEAD    = "HEAD"
+	DELETE  = "DELETE"
+	PUT     = "PUT"
+	PATCH   = "PATCH"
+	OPTIONS = "OPTIONS"
+)
 
 var AllowAllOrigin = []string{"*"}
 var DefaultPreflightHeaders = []string{"Origin", "Accept", "Content-Type"}
 
+/*
+RouterGroup ...
+RouterGroup is a wrapper of router.Group and has some middlewares.
+*/
 type RouterGroup struct {
 	group               *router.Group
 	requestMiddlewares  []middleware.Middleware
 	responseMiddlewares []middleware.Middleware
 }
 
+/*
+Use ...
+append middlewares from given middleware.MiddlewareSet to RouterGroup.
+*/
 func (r *RouterGroup) Use(middlewareset ...middleware.MiddlewareSet) *RouterGroup {
 	for _, m := range middlewareset {
 		req, res := m.Request, m.Response
@@ -51,6 +61,10 @@ func (r *RouterGroup) Use(middlewareset ...middleware.MiddlewareSet) *RouterGrou
 	return r
 }
 
+/*
+Handle ...
+register router with given method and path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Handle(method string, path string, handler Handler) {
 	r.group.Handle(method, path, func(ctx *fasthttp.RequestCtx) {
 		luxCtx := &LuxContext{ctx: ctx}
@@ -72,34 +86,67 @@ func (r *RouterGroup) Handle(method string, path string, handler Handler) {
 	})
 }
 
+/*
+Get ...
+register router with GET method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Get(path string, handler Handler) {
 	r.Handle(GET, path, handler)
 }
 
+/*
+Post ...
+register router with POST method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Post(path string, handler Handler) {
 	r.Handle(POST, path, handler)
 }
 
+/*
+Head ...
+register router with HEAD method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Head(path string, handler Handler) {
 	r.Handle(HEAD, path, handler)
 }
 
+/*
+Delete ...
+register router with DELETE method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Delete(path string, handler Handler) {
 	r.Handle(DELETE, path, handler)
 }
 
+/*
+Put ...
+register router with PUT method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Put(path string, handler Handler) {
 	r.Handle(PUT, path, handler)
 }
 
+/*
+Patch ...
+register router with PATCH method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Patch(path string, handler Handler) {
 	r.Handle(PATCH, path, handler)
 }
 
+/*
+Options ...
+register router with OPTIONS method and given path to RouterGroup, and apply handler to it.
+*/
 func (r *RouterGroup) Options(path string, handler Handler) {
 	r.Handle(OPTIONS, path, handler)
 }
 
+/*
+Preflight ...
+register router with OPTIONS method to default path "/" to RouterGroup,
+and apply CORS preflight to it.
+*/
 func (r *RouterGroup) Preflight(allowOrigins []string, allowMethods []string, allowHeaders []string) {
 	r.group.OPTIONS("", func(ctx *fasthttp.RequestCtx) {
 		origin := string(ctx.Request.Header.Peek("Origin"))
@@ -135,6 +182,10 @@ func (r *RouterGroup) Preflight(allowOrigins []string, allowMethods []string, al
 	})
 }
 
+/*
+Statics ...
+register router with GET method to given path to RouterGroup, and apply static file server to it.
+*/
 func (r *RouterGroup) Statics(path string, root string) {
 	if path == "" {
 		path = "/"
@@ -145,6 +196,10 @@ func (r *RouterGroup) Statics(path string, root string) {
 	r.group.ServeFiles(path, root)
 }
 
+/*
+Embedded ...
+register router with GET method to given path to RouterGroup, and apply embedded file server to it.
+*/
 func (r *RouterGroup) Embedded(path string, embedded fs.FS) {
 	if path == "" {
 		path = "/"
@@ -181,6 +236,10 @@ func (r *RouterGroup) Embedded(path string, embedded fs.FS) {
 	})
 }
 
+/*
+GetContentTypeFromExt ...
+get content type from file extension.
+*/
 func GetContentTypeFromExt(ext string) string {
 	contentType := "text/plain"
 	switch ext {
@@ -286,6 +345,10 @@ func GetContentTypeFromExt(ext string) string {
 	return contentType
 }
 
+/*
+GetGraph ...
+GraphQL with GET method.
+*/
 func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
 	schemeConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
@@ -309,6 +372,10 @@ func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
 	})
 }
 
+/*
+GetTemplateHTML ...
+Template HTML with GET method.
+*/
 func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{}) {
 	template, err := template.New("html").Parse(tmp)
 	if err != nil {
@@ -331,6 +398,10 @@ func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{})
 	})
 }
 
+/*
+PostProtobuf ...
+Protobuf function with POST method.
+*/
 func (r *RouterGroup) PostProtobuf(path string, typ protoreflect.ProtoMessage, handler func(protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)) {
 	protoType := reflect.TypeOf(typ).Elem()
 	r.Post(path, func(lc *LuxContext) {
