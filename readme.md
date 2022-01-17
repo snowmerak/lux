@@ -60,7 +60,7 @@ func main() {
 }
 ```
 
-### simple graphql get
+### simple get graphql
 
 ```go
 package main
@@ -90,7 +90,7 @@ func main() {
 }
 ```
 
-### simple template get
+### simple get template
 
 ```go
 package main
@@ -106,6 +106,39 @@ func main() {
 	root.Use(middleware.CORS(), middleware.CompressBrotli())
 	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
 	root.GetTemplateHTML("", "Hello, {{.Name}}!", struct{ Name string }{Name: "World"})
+	if err := app.ListenAndServe(":8080"); err != nil {
+		panic(err)
+	}
+}
+```
+
+### simple post protobuf
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/test/model/capsule"
+	"google.golang.org/protobuf/reflect/protoreflect"
+)
+
+func main() {
+	app := lux.NewServer()
+	root := app.RouterGroup("")
+	root.Use(middleware.CORS(), middleware.CompressBrotli(), middleware.AllowStaticIPs("127.0.0.1", "localhost"))
+	root.Preflight(lux.AllowAllOrigin, []string{"GET"}, lux.DefaultPreflightHeaders)
+	root.Get("", func(lc *lux.LuxContext) {
+		lc.ReplyString("Hello World")
+	})
+	root.PostProtobuf("", new(capsule.Capsule), func(pm protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
+		capsule := pm.(*capsule.Capsule)
+		if capsule
+		capsule.ID = "snowmerak"
+		capsule.Data = []byte("Hello World")
+		return capsule, nil
+	})
 	if err := app.ListenAndServe(":8080"); err != nil {
 		panic(err)
 	}
