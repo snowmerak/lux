@@ -20,7 +20,7 @@ import (
 
 type LuxContext struct {
 	ctx *fasthttp.RequestCtx
-	Log Logger
+	Log logger.Logger
 }
 
 func (l *LuxContext) Ok() bool {
