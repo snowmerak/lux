@@ -195,6 +195,10 @@ func (l *LuxContext) GetForm(name string) string {
 	return string(l.ctx.FormValue(name))
 }
 
+func (l *LuxContext) GetBody() []byte {
+	return l.ctx.Request.Body()
+}
+
 func (l *LuxContext) GetPostArgs(name string) string {
 	return string(l.ctx.PostArgs().Peek(name))
 }
