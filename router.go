@@ -17,6 +17,8 @@ import (
 	"github.com/snowmerak/lux/logger"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/valyala/fasthttp"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const GET = "GET"
@@ -334,5 +336,24 @@ func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{})
 		buf := bytes.NewBuffer(nil)
 		template.Execute(buf, val.Interface())
 		lc.ReplyHTML(buf.Bytes())
+	})
+}
+
+func (r *RouterGroup) PostProtobuf(path string, typ protoreflect.ProtoMessage, handler func(protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)) {
+	protoType := reflect.TypeOf(typ).Elem()
+	r.Post(path, func(lc *LuxContext) {
+		val := reflect.New(protoType).Elem()
+		if err := proto.Unmarshal(lc.GetBody(), val.Addr().Interface().(proto.Message)); err != nil {
+			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Error, path+" protobuf error: "+fmt.Sprint(err)).End())
+			lc.BadRequest()
+			return
+		}
+		result, err := handler(val.Addr().Interface().(protoreflect.ProtoMessage))
+		if err != nil {
+			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Error, path+" handler error: "+fmt.Sprint(err)).End())
+			lc.BadRequest()
+			return
+		}
+		lc.ReplyProtobuf(result)
 	})
 }
