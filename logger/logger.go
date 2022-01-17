@@ -9,9 +9,13 @@ import (
 	"github.com/snowmerak/logstream/log/logbuffer/logstream/globalque"
 	"github.com/snowmerak/logstream/log/loglevel"
 	"github.com/snowmerak/logstream/log/writable"
+	"github.com/snowmerak/logstream/log/writable/stdout"
 )
 
+type Logger struct{}
+
 const SYSTEM = "SYSTEM"
+const MIDDLEWARE = "MIDDLEWARE"
 
 var ctx = context.Background()
 var globalQueue = globalque.New(ctx, logring.New, 16)
@@ -30,7 +34,22 @@ func Observe(topic string, writers ...writable.Writable) error {
 	return nil
 }
 
-type Logger struct{}
+func init() {
+	Observe(SYSTEM, stdout.New(context.Background(), loglevel.All, nil))
+	Observe(MIDDLEWARE, stdout.New(context.Background(), loglevel.All, nil))
+}
+
+func (l Logger) WriteLog(topic string, log log.Log) error {
+	return Write(topic, log)
+}
+
+func (l Logger) Observe(topic string, writers ...writable.Writable) error {
+	return Observe(topic, writers...)
+}
+
+func (l Logger) Write(topic string, level loglevel.LogLevel, message string) error {
+	return Write(topic, log.New(level, message).End())
+}
 
 func (l Logger) Printf(format string, args ...interface{}) {
 	Write(SYSTEM, log.New(loglevel.Error, fmt.Sprintf(format, args...)).End())
