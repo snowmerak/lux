@@ -134,7 +134,6 @@ func main() {
 	})
 	root.PostProtobuf("", new(capsule.Capsule), func(pm protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error) {
 		capsule := pm.(*capsule.Capsule)
-		if capsule
 		capsule.ID = "snowmerak"
 		capsule.Data = []byte("Hello World")
 		return capsule, nil
