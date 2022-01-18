@@ -1,6 +1,8 @@
 package lux
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -10,6 +12,7 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/snowmerak/lux/logger"
 	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
 	"github.com/valyala/fasthttp"
 )
 
@@ -24,6 +27,7 @@ type Lux struct {
 	router              *router.Router
 	requestMiddlewares  []middleware.Middleware
 	responseMiddlewares []middleware.Middleware
+	swagger             swagger.Swagger
 }
 
 /*
@@ -36,7 +40,59 @@ func NewServer() *Lux {
 			Logger: logger.Logger{},
 		},
 		router: router.New(),
+		swagger: swagger.Swagger{
+			SwaggerVersion: "2.0",
+		},
 	}
+}
+
+func (l *Lux) SetDescription(description string) {
+	l.swagger.Info.Description = description
+}
+
+func (l *Lux) SetEmail(email string) {
+	l.swagger.Info.Contact.Email = email
+}
+
+func (l *Lux) SetTitle(title string) {
+	l.swagger.Info.Title = title
+}
+
+func (l *Lux) SetLicense(license string, url string) {
+	l.swagger.Info.License.Name = license
+	l.swagger.Info.License.URL = url
+}
+
+func (l *Lux) SetVersion(version string) {
+	l.swagger.Info.Version = version
+}
+
+func (l *Lux) ShowSwagger(path string) {
+	if path == "" {
+		path = "/"
+	}
+	if !strings.HasSuffix(path, "/") {
+		path += "/"
+	}
+	if !strings.HasSuffix(path, "{filepath:*}") {
+		path += "{filepath:*}"
+	}
+
+	buf := bytes.NewBuffer(nil)
+	encoder := json.NewEncoder(buf)
+	if err := encoder.Encode(l.swagger); err != nil {
+		panic(err)
+	}
+
+	f, err := os.Create("./swagger/dist/swagger.json")
+	if err != nil {
+		panic(err)
+	}
+
+	f.Write(buf.Bytes())
+	f.Close()
+
+	l.router.ServeFiles(path, "./swagger/dist")
 }
 
 /*
@@ -44,7 +100,9 @@ RouterGroup ...
 returns a RouterGroup of paths.
 */
 func (l *Lux) RouterGroup(path ...string) *RouterGroup {
-	group := l.router.Group("/" + strings.Join(path, "/"))
+	name := "/" + strings.Join(path, "/")
+	l.swagger.Paths[swagger.Path(name)] = make(map[swagger.Method]swagger.Router)
+	group := l.router.Group(name)
 	return &RouterGroup{
 		group:               group,
 		requestMiddlewares:  []middleware.Middleware{},
