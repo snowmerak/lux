@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -415,4 +416,31 @@ func (l *LuxContext) GetPort() string {
 		return rip[idx+1:]
 	}
 	return ""
+}
+
+/*
+MapTo ...
+MapTo method copy each fields from dst struct to src struct
+*/
+func (l *LuxContext) MapTo(dst interface{}, src interface{}) interface{} {
+	dstType := reflect.TypeOf(dst)
+	srcType := reflect.TypeOf(src)
+
+	if srcType.Kind() == reflect.Struct || dstType.Kind() == reflect.Struct {
+		return dst
+	}
+
+	dstValue := reflect.ValueOf(dst)
+	srcValue := reflect.ValueOf(src)
+
+	for i := 0; i < srcType.NumField(); i++ {
+		srcField := srcType.Field(i)
+		dstField, ok := dstType.FieldByName(srcField.Name)
+		if !ok {
+			continue
+		}
+		dstValue.FieldByName(dstField.Name).Set(srcValue.Field(i))
+	}
+
+	return dstValue.Interface()
 }
