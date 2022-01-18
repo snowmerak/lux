@@ -6,13 +6,6 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type Middleware func(*fasthttp.RequestCtx) *fasthttp.RequestCtx
-
-type MiddlewareSet struct {
-	Request  Middleware
-	Response Middleware
-}
-
 /*
 CORS ...
 CORS middleware
