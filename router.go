@@ -358,7 +358,7 @@ func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
 	}
 
 	r.Get(path, func(lc *LuxContext) {
-		query := lc.GetParam("query")
+		query := lc.GetURLParam("query")
 		buf, err := base64.RawURLEncoding.DecodeString(query)
 		if err == nil {
 			query = string(buf)
@@ -390,7 +390,7 @@ func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{})
 		}()
 		val := reflect.New(typ).Elem()
 		for i := 0; i < val.NumField(); i++ {
-			val.Field(i).Set(reflect.ValueOf(lc.GetParam(val.Type().Field(i).Name)))
+			val.Field(i).Set(reflect.ValueOf(lc.GetURLParam(val.Type().Field(i).Name)))
 		}
 		buf := bytes.NewBuffer(nil)
 		template.Execute(buf, val.Interface())
