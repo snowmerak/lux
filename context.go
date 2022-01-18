@@ -322,8 +322,8 @@ func (l *LuxContext) SaveFiles(name string, path string) error {
 GetForm ...
 GetForm method returns a value of given name from context.FromValue
 */
-func (l *LuxContext) GetForm(name string) string {
-	return string(l.ctx.FormValue(name))
+func (l *LuxContext) GetForm(name string) []byte {
+	return l.ctx.FormValue(name)
 }
 
 /*
@@ -346,7 +346,7 @@ func (l *LuxContext) GetPostArgs(name string) string {
 GetParam ...
 GetParam method returns a value of given name from context's URL arguments.
 */
-func (l *LuxContext) GetParam(name string) string {
+func (l *LuxContext) GetURLParam(name string) string {
 	return string(l.ctx.QueryArgs().Peek(name))
 }
 
