@@ -27,7 +27,7 @@ type Lux struct {
 	router              *router.Router
 	requestMiddlewares  []middleware.Middleware
 	responseMiddlewares []middleware.Middleware
-	swagger             swagger.Swagger
+	Swagger             Swagger
 }
 
 /*
@@ -40,59 +40,15 @@ func NewServer() *Lux {
 			Logger: logger.Logger{},
 		},
 		router: router.New(),
-		swagger: swagger.Swagger{
-			SwaggerVersion: "2.0",
+		Swagger: Swagger{
+			&swagger.Swagger{
+				SwaggerVersion:      "2.0",
+				Paths:               make(map[swagger.Path]map[swagger.Method]swagger.Router),
+				SecurityDefinitions: make(map[string]swagger.SecurityDefinition),
+				Definitions:         make(map[string]swagger.Definition),
+			},
 		},
 	}
-}
-
-func (l *Lux) SetDescription(description string) {
-	l.swagger.Info.Description = description
-}
-
-func (l *Lux) SetEmail(email string) {
-	l.swagger.Info.Contact.Email = email
-}
-
-func (l *Lux) SetTitle(title string) {
-	l.swagger.Info.Title = title
-}
-
-func (l *Lux) SetLicense(license string, url string) {
-	l.swagger.Info.License.Name = license
-	l.swagger.Info.License.URL = url
-}
-
-func (l *Lux) SetVersion(version string) {
-	l.swagger.Info.Version = version
-}
-
-func (l *Lux) ShowSwagger(path string) {
-	if path == "" {
-		path = "/"
-	}
-	if !strings.HasSuffix(path, "/") {
-		path += "/"
-	}
-	if !strings.HasSuffix(path, "{filepath:*}") {
-		path += "{filepath:*}"
-	}
-
-	buf := bytes.NewBuffer(nil)
-	encoder := json.NewEncoder(buf)
-	if err := encoder.Encode(l.swagger); err != nil {
-		panic(err)
-	}
-
-	f, err := os.Create("./swagger/dist/swagger.json")
-	if err != nil {
-		panic(err)
-	}
-
-	f.Write(buf.Bytes())
-	f.Close()
-
-	l.router.ServeFiles(path, "./swagger/dist")
 }
 
 /*
@@ -101,12 +57,15 @@ returns a RouterGroup of paths.
 */
 func (l *Lux) RouterGroup(path ...string) *RouterGroup {
 	name := "/" + strings.Join(path, "/")
-	l.swagger.Paths[swagger.Path(name)] = make(map[swagger.Method]swagger.Router)
+	l.Swagger.inner.Paths[swagger.Path(name)] = make(map[swagger.Method]swagger.Router)
 	group := l.router.Group(name)
 	return &RouterGroup{
 		group:               group,
 		requestMiddlewares:  []middleware.Middleware{},
 		responseMiddlewares: []middleware.Middleware{},
+
+		swagger: l.Swagger.inner,
+		path:    name,
 	}
 }
 
@@ -244,4 +203,32 @@ func (l *Lux) ListenAndServeAutoTLS(addr string) error {
 	l.wrapHandler()
 	printInfo(addr)
 	return l.server.Serve(ln)
+}
+
+func (l *Lux) ShowSwagger(path string) {
+	if path == "" {
+		path = "/"
+	}
+	if !strings.HasSuffix(path, "/") {
+		path += "/"
+	}
+	if !strings.HasSuffix(path, "{filepath:*}") {
+		path += "{filepath:*}"
+	}
+
+	buf := bytes.NewBuffer(nil)
+	encoder := json.NewEncoder(buf)
+	if err := encoder.Encode(l.Swagger.inner); err != nil {
+		panic(err)
+	}
+
+	f, err := os.Create("./swagger/dist/swagger.json")
+	if err != nil {
+		panic(err)
+	}
+
+	f.Write(buf.Bytes())
+	f.Close()
+
+	l.router.ServeFiles(path, "./swagger/dist")
 }
