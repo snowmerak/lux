@@ -46,19 +46,56 @@ const (
 	PATCH   Method = "patch"
 )
 
+type Type string
+
+const (
+	String  Type = "string"
+	Int     Type = "integer"
+	Number  Type = "number"
+	Boolean Type = "boolean"
+	Array   Type = "array"
+	Object  Type = "object"
+	Null    Type = "null"
+)
+
+type Format string
+
+const (
+	NumberFloat    Format = "float"
+	NumberDouble   Format = "double"
+	NumberInt32    Format = "int32"
+	NumberInt64    Format = "int64"
+	StringDate     Format = "date"
+	StringDateTime Format = "date-time"
+	StringPassword Format = "password"
+	StringBytes    Format = "byte"
+	StringBinary   Format = "binary"
+)
+
+type In string
+
+const (
+	InQuery   In = "query"
+	InHeader  In = "header"
+	InPath    In = "path"
+	InForm    In = "formData"
+	InBody    In = "body"
+	InCookies In = "cookie"
+)
+
 type Parameter struct {
-	In          string            `json:"in,omitempty"`
-	Name        string            `json:"name,omitempty"`
-	Description string            `json:"description,omitempty"`
-	Required    bool              `json:"required,omitempty"`
-	Type        string            `json:"type,omitempty"`
-	Minimum     float64           `json:"minimum,omitempty"`
-	Maximum     float64           `json:"maximum,omitempty"`
-	Format      string            `json:"format,omitempty"`
-	Schema      map[string]string `json:"schema,omitempty"`
+	In          In       `json:"in,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Required    bool     `json:"required,omitempty"`
+	Type        Type     `json:"type,omitempty"`
+	Minimum     float64  `json:"minimum,omitempty"`
+	Maximum     float64  `json:"maximum,omitempty"`
+	Format      Format   `json:"format,omitempty"`
+	Schema      []Schema `json:"schema,omitempty"`
 	Items       struct {
-		Type   string `json:"type,omitempty"`
-		Format string `json:"format,omitempty"`
+		Type   Type   `json:"type,omitempty"`
+		Format Format `json:"format,omitempty"`
 	} `json:"items,omitempty"`
 	CollectionFormat string `json:"collectionFormat,omitempty"`
 }
@@ -80,16 +117,18 @@ type Response struct {
 }
 
 type Schema struct {
-	Type  string            `json:"type,omitempty"`
-	Items map[string]string `json:"items,omitempty"`
+	Type       Type              `json:"type,omitempty"`
+	Format     Format            `json:"format,omitempty"`
+	Items      []Schema          `json:"items,omitempty"`
+	Properties map[string]Schema `json:"properties,omitempty"`
 }
 
 type Definition struct {
 	Type       string   `json:"type,omitempty"`
 	Required   []string `json:"required,omitempty"`
 	Properties map[string]struct {
-		Type   string   `json:"type,omitempty"`
-		Format string   `json:"format,omitempty"`
+		Type   Type     `json:"type,omitempty"`
+		Format Format   `json:"format,omitempty"`
 		Enum   []string `json:"enum,omitempty"`
 	} `json:"properties,omitempty"`
 }
