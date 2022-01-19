@@ -346,7 +346,7 @@ func (l *LuxContext) GetPostArgs(name string) string {
 GetParam ...
 GetParam method returns a value of given name from context's URL arguments.
 */
-func (l *LuxContext) GetURLParam(name string) string {
+func (l *LuxContext) GetQuery(name string) string {
 	return string(l.ctx.QueryArgs().Peek(name))
 }
 
