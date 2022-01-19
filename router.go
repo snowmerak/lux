@@ -16,6 +16,7 @@ import (
 	"github.com/snowmerak/logstream/log/loglevel"
 	"github.com/snowmerak/lux/logger"
 	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -42,6 +43,9 @@ type RouterGroup struct {
 	group               *router.Group
 	requestMiddlewares  []middleware.Middleware
 	responseMiddlewares []middleware.Middleware
+
+	swagger *swagger.Swagger
+	path    string
 }
 
 /*
@@ -65,7 +69,18 @@ func (r *RouterGroup) Use(middlewareset ...middleware.MiddlewareSet) *RouterGrou
 Handle ...
 register router with given method and path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Handle(method string, path string, handler Handler) {
+func (r *RouterGroup) Handle(method string, path string, handler Handler, swaggerInfo *swagger.Router) {
+	if swaggerInfo == nil {
+		swaggerInfo = &swagger.Router{}
+	}
+	name := swagger.Path(r.path)
+	if path != "" {
+		name = swagger.Path(r.path + "/" + path)
+	}
+	if r.swagger.Paths[name] == nil {
+		r.swagger.Paths[name] = make(map[swagger.Method]swagger.Router)
+	}
+	r.swagger.Paths[name][swagger.Method(strings.ToLower(method))] = *swaggerInfo
 	r.group.Handle(method, path, func(ctx *fasthttp.RequestCtx) {
 		luxCtx := &LuxContext{ctx: ctx}
 		for _, m := range r.requestMiddlewares {
@@ -90,56 +105,56 @@ func (r *RouterGroup) Handle(method string, path string, handler Handler) {
 Get ...
 register router with GET method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Get(path string, handler Handler) {
-	r.Handle(GET, path, handler)
+func (r *RouterGroup) Get(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(GET, path, handler, swaggerInfo)
 }
 
 /*
 Post ...
 register router with POST method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Post(path string, handler Handler) {
-	r.Handle(POST, path, handler)
+func (r *RouterGroup) Post(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(POST, path, handler, swaggerInfo)
 }
 
 /*
 Head ...
 register router with HEAD method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Head(path string, handler Handler) {
-	r.Handle(HEAD, path, handler)
+func (r *RouterGroup) Head(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(HEAD, path, handler, swaggerInfo)
 }
 
 /*
 Delete ...
 register router with DELETE method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Delete(path string, handler Handler) {
-	r.Handle(DELETE, path, handler)
+func (r *RouterGroup) Delete(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(DELETE, path, handler, swaggerInfo)
 }
 
 /*
 Put ...
 register router with PUT method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Put(path string, handler Handler) {
-	r.Handle(PUT, path, handler)
+func (r *RouterGroup) Put(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(PUT, path, handler, swaggerInfo)
 }
 
 /*
 Patch ...
 register router with PATCH method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Patch(path string, handler Handler) {
-	r.Handle(PATCH, path, handler)
+func (r *RouterGroup) Patch(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(PATCH, path, handler, swaggerInfo)
 }
 
 /*
 Options ...
 register router with OPTIONS method and given path to RouterGroup, and apply handler to it.
 */
-func (r *RouterGroup) Options(path string, handler Handler) {
-	r.Handle(OPTIONS, path, handler)
+func (r *RouterGroup) Options(path string, handler Handler, swaggerInfo *swagger.Router) {
+	r.Handle(OPTIONS, path, handler, swaggerInfo)
 }
 
 /*
@@ -233,7 +248,7 @@ func (r *RouterGroup) Embedded(path string, embedded fs.FS) {
 			return
 		}
 		lc.Reply(GetContentTypeFromExt(filepath.Ext(stats.Name())), buf)
-	})
+	}, nil)
 }
 
 /*
@@ -369,7 +384,7 @@ func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
 			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "graphql error: "+result.Errors[0].Error()).End())
 		}
 		lc.ReplyJSON(result)
-	})
+	}, nil)
 }
 
 /*
@@ -395,7 +410,7 @@ func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{})
 		buf := bytes.NewBuffer(nil)
 		template.Execute(buf, val.Interface())
 		lc.ReplyHTML(buf.Bytes())
-	})
+	}, nil)
 }
 
 /*
@@ -418,5 +433,5 @@ func (r *RouterGroup) PostProtobuf(path string, typ protoreflect.ProtoMessage, h
 			return
 		}
 		lc.ReplyProtobuf(result)
-	})
+	}, nil)
 }
