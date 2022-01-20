@@ -215,7 +215,7 @@ func (r *RouterGroup) Statics(path string, root string) {
 Embedded ...
 register router with GET method to given path to RouterGroup, and apply embedded file server to it.
 */
-func (r *RouterGroup) Embedded(path string, embedded fs.FS) {
+func (r *RouterGroup) Embedded(path string, embedded fs.FS, swaggerInfo *swagger.Router) {
 	if path == "" {
 		path = "/"
 	}
@@ -248,7 +248,7 @@ func (r *RouterGroup) Embedded(path string, embedded fs.FS) {
 			return
 		}
 		lc.Reply(GetContentTypeFromExt(filepath.Ext(stats.Name())), buf)
-	}, nil)
+	}, swaggerInfo)
 }
 
 /*
@@ -364,7 +364,7 @@ func GetContentTypeFromExt(ext string) string {
 GetGraph ...
 GraphQL with GET method.
 */
-func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
+func (r *RouterGroup) GetGraph(path string, fields graphql.Fields, swaggerInfo *swagger.Router) {
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
 	schemeConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
 	scheme, err := graphql.NewSchema(schemeConfig)
@@ -384,14 +384,14 @@ func (r *RouterGroup) GetGraph(path string, fields graphql.Fields) {
 			lc.Log.WriteLog(logger.SYSTEM, log.New(loglevel.Warn, "graphql error: "+result.Errors[0].Error()).End())
 		}
 		lc.ReplyJSON(result)
-	}, nil)
+	}, swaggerInfo)
 }
 
 /*
 GetTemplateHTML ...
 Template HTML with GET method.
 */
-func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{}) {
+func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{}, swaggerInfo *swagger.Router) {
 	template, err := template.New("html").Parse(tmp)
 	if err != nil {
 		panic(fmt.Errorf("failed to create new template, %v", err))
@@ -410,14 +410,14 @@ func (r *RouterGroup) GetTemplateHTML(path string, tmp string, data interface{})
 		buf := bytes.NewBuffer(nil)
 		template.Execute(buf, val.Interface())
 		lc.ReplyHTML(buf.Bytes())
-	}, nil)
+	}, swaggerInfo)
 }
 
 /*
 PostProtobuf ...
 Protobuf function with POST method.
 */
-func (r *RouterGroup) PostProtobuf(path string, typ protoreflect.ProtoMessage, handler func(protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error)) {
+func (r *RouterGroup) PostProtobuf(path string, typ protoreflect.ProtoMessage, handler func(protoreflect.ProtoMessage) (protoreflect.ProtoMessage, error), swaggerInfo *swagger.Router) {
 	protoType := reflect.TypeOf(typ).Elem()
 	r.Post(path, func(lc *LuxContext) {
 		val := reflect.New(protoType).Elem()
@@ -433,5 +433,5 @@ func (r *RouterGroup) PostProtobuf(path string, typ protoreflect.ProtoMessage, h
 			return
 		}
 		lc.ReplyProtobuf(result)
-	}, nil)
+	}, swaggerInfo)
 }
