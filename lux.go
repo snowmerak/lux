@@ -127,3 +127,16 @@ func (l *Lux) ListenAndServeHTTP2(addr string) error {
 	}
 	return nil
 }
+
+func (l *Lux) ListenAndServeHTTPS2(addr string, certFile string, keyFile string) error {
+	l.buildServer(addr)
+	if err := http2.ConfigureServer(l.server, nil); err != nil {
+		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
+		return err
+	}
+	if err := l.server.ListenAndServeTLS(certFile, keyFile); err != nil {
+		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
+		return err
+	}
+	return nil
+}
