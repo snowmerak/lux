@@ -1215,27 +1215,27 @@ func main() {
 	})
 
 	rootGroup.POST("/", func(lc *context.LuxContext) error {
-		return lc.ReplyString("GET request")
+		return lc.ReplyString("POST request")
 	})
 
 	rootGroup.PATCH("/", func(lc *context.LuxContext) error {
-		return lc.ReplyString("GET request")
+		return lc.ReplyString("PATCH request")
 	})
 
 	rootGroup.PUT("/", func(lc *context.LuxContext) error {
-		return lc.ReplyString("GET request")
+		return lc.ReplyString("PUT request")
 	})
 
 	rootGroup.DELETE("/", func(lc *context.LuxContext) error {
-		return lc.ReplyString("GET request")
+		return lc.ReplyString("DELETE request")
 	})
 
 	rootGroup.OPTIONS("/", func(lc *context.LuxContext) error {
-		return lc.ReplyString("GET request")
+		return lc.ReplyString("OPTIONS request")
 	})
 	
 	rootGroup.HEAD("/", func(lc *context.LuxContext) error {
-		return lc.ReplyString("GET request")
+		return lc.ReplyString("HEAD request") // will be ignored
 	})
 
 	if err := app.ListenAndServe1(":8080"); err != nil {
