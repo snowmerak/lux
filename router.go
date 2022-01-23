@@ -7,10 +7,10 @@ import (
 	"github.com/snowmerak/lux/router"
 )
 
-func (l *Lux) NewRouterGroup(path string) *router.RouterGroup {
+func (l *Lux) NewRouterGroup(path string, middlewares ...middleware.Set) *router.RouterGroup {
 	rg := &router.RouterGroup{
 		Path:            path,
-		Middlewares:     []middleware.Set{},
+		Middlewares:     middlewares,
 		Routers:         map[string]map[string]*router.Router{},
 		SubRouterGroups: []*router.RouterGroup{},
 		Logger:          l.logger,
