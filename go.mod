@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Workiva/go-datastructures v1.0.53
-	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/andybalholm/brotli v1.0.4
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/snappy v0.0.4
 	github.com/julienschmidt/httprouter v1.3.0
