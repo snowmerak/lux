@@ -1,6 +1,7 @@
 package lux
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -95,9 +96,11 @@ func (l *Lux) buildServer(addr string) {
 		}
 	}
 	l.routers = nil
+	fmt.Println("Lux is ready to serve")
+	fmt.Printf("listen and serve on %s\n", addr)
 }
 
-func (l *Lux) ListenAndServeHTTP(addr string) error {
+func (l *Lux) ListenAndServe1(addr string) error {
 	l.buildServer(addr)
 	if err := l.server.ListenAndServe(); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTP: %s", err)
@@ -106,7 +109,7 @@ func (l *Lux) ListenAndServeHTTP(addr string) error {
 	return nil
 }
 
-func (l *Lux) ListenAndServeHTTPS(addr string, certFile string, keyFile string) error {
+func (l *Lux) ListenAndServe1TLS(addr string, certFile string, keyFile string) error {
 	l.buildServer(addr)
 	if err := l.server.ListenAndServeTLS(certFile, keyFile); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTPS: %s", err)
@@ -115,7 +118,7 @@ func (l *Lux) ListenAndServeHTTPS(addr string, certFile string, keyFile string) 
 	return nil
 }
 
-func (l *Lux) ListenAndServeHTTP2(addr string) error {
+func (l *Lux) ListenAndServe2(addr string) error {
 	l.buildServer(addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTP2: %s", err)
@@ -128,7 +131,7 @@ func (l *Lux) ListenAndServeHTTP2(addr string) error {
 	return nil
 }
 
-func (l *Lux) ListenAndServeHTTPS2(addr string, certFile string, keyFile string) error {
+func (l *Lux) ListenAndServe2TLS(addr string, certFile string, keyFile string) error {
 	l.buildServer(addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
