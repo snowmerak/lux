@@ -1,78 +1,83 @@
 package middleware
 
 import (
+	"bytes"
 	"compress/gzip"
+	"net/http"
+	"strings"
 
+	"github.com/andybalholm/brotli"
 	"github.com/golang/snappy"
-	"github.com/snowmerak/logstream/log"
-	"github.com/snowmerak/logstream/log/loglevel"
-	"github.com/snowmerak/lux/logger"
-	"github.com/valyala/fasthttp"
+	"github.com/snowmerak/lux/context"
 )
 
-func compressSnappy(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-	defer func() {
-		if err, ok := recover().(error); ok && err != nil {
-			logger.Write(logger.MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
-			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+var CompressSnappy = Set{
+	Request: nil,
+	Response: func(l *context.LuxContext) (*context.LuxContext, error) {
+		acceptEncodings := strings.Split(l.Request.Header.Get("Accept-Encoding"), ", ")
+		if len(acceptEncodings) > 0 && acceptEncodings[0] != "snappy" || len(acceptEncodings) == 0 {
+			return l, nil
 		}
-	}()
-	if string(ctx.Request.Header.Peek("Content-Encoding")) != "snappy" {
-		body := snappy.Encode(nil, ctx.Request.Body())
-		ctx.Request.SetBody(body)
-		ctx.Request.Header.Set("Content-Encoding", "snappy")
-	}
-	return ctx
-}
-
-func CompressSnappy() MiddlewareSet {
-	return MiddlewareSet{
-		nil,
-		compressSnappy,
-	}
-}
-
-func compressGzip(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-	if string(ctx.Request.Header.Peek("Content-Encoding")) != "gzip" {
-		body := ctx.Response.Body()
-		ctx.Response.ResetBody()
-		writer := gzip.NewWriter(ctx.Response.BodyWriter())
-		defer writer.Close()
-		if _, err := writer.Write(body); err != nil {
-			logger.Write(logger.MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
-			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-			return ctx
+		buf := bytes.NewBuffer(nil)
+		writer := snappy.NewWriter(buf)
+		_, err := writer.Write(l.Response.Body)
+		if err != nil {
+			return l, err
 		}
-		ctx.Request.Header.Set("Content-Encoding", "gzip")
-	}
-	return ctx
+		writer.Flush()
+		writer.Close()
+		l.Response.Body = buf.Bytes()
+		l.Response.Headers.Add("Content-Encoding", "snappy")
+		l.Request.Header.Set("Accept-Encoding", strings.Join(acceptEncodings[1:], ", "))
+		return l, nil
+	},
 }
 
-func CompressGzip() MiddlewareSet {
-	return MiddlewareSet{
-		nil,
-		compressGzip,
-	}
-}
-
-func compressBrotli(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-	if string(ctx.Request.Header.Peek("Content-Encoding")) != "br" {
-		body := ctx.Response.Body()
-		ctx.Response.ResetBody()
-		writer := ctx.Response.BodyWriter()
-		if _, err := writer.Write(body); err != nil {
-			logger.Write(logger.MIDDLEWARE, log.New(loglevel.Error, string(ctx.Path())+": "+err.Error()).End())
-			ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-			return ctx
+var CompressGzip = Set{
+	Request: nil,
+	Response: func(l *context.LuxContext) (*context.LuxContext, error) {
+		acceptEncodings := strings.Split(l.Request.Header.Get("Accept-Encoding"), ", ")
+		if len(acceptEncodings) > 0 && acceptEncodings[0] != "gzip" || len(acceptEncodings) == 0 {
+			return l, nil
 		}
-		ctx.Request.Header.Set("Content-Encoding", "br")
-	}
-	return ctx
+		buf := bytes.NewBuffer(nil)
+		writer := gzip.NewWriter(buf)
+		_, err := writer.Write(l.Response.Body)
+		if err != nil {
+			l.Response.StatusCode = http.StatusInternalServerError
+			return l, err
+		}
+		writer.Flush()
+		writer.Close()
+		l.Response.Body = buf.Bytes()
+		l.Response.Headers.Add("Content-Encoding", "gzip")
+		if len(acceptEncodings) >= 2 && acceptEncodings[1] == "defalte" {
+			acceptEncodings = acceptEncodings[1:]
+		}
+		l.Request.Header.Set("Accept-Encoding", strings.Join(acceptEncodings[1:], ", "))
+		return l, nil
+	},
 }
 
-func CompressBrotli() MiddlewareSet {
-	return MiddlewareSet{
-		nil,
-		compressBrotli,
-	}
+var CompressBrotli = Set{
+	Request: nil,
+	Response: func(l *context.LuxContext) (*context.LuxContext, error) {
+		acceptEncodings := strings.Split(l.Request.Header.Get("Accept-Encoding"), ", ")
+		if len(acceptEncodings) > 0 && acceptEncodings[0] != "br" || len(acceptEncodings) == 0 {
+			return l, nil
+		}
+		buf := bytes.NewBuffer(nil)
+		writer := brotli.NewWriter(buf)
+		_, err := writer.Write(l.Response.Body)
+		if err != nil {
+			l.Response.StatusCode = http.StatusInternalServerError
+			return l, err
+		}
+		writer.Flush()
+		writer.Close()
+		l.Response.Body = buf.Bytes()
+		l.Response.Headers.Add("Content-Encoding", "br")
+		l.Request.Header.Set("Accept-Encoding", strings.Join(acceptEncodings[1:], ", "))
+		return l, nil
+	},
 }

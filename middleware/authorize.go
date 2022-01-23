@@ -1,26 +1,17 @@
 package middleware
 
-import "github.com/valyala/fasthttp"
+import "net/http"
 
-/*
-Auth ...
-authorize middleware
-tokenChecker is consume authorization header and token cookie
-*/
-func Auth(tokenChecker func(authorizationHeader []byte, tokenCookie []byte) error) MiddlewareSet {
-	return MiddlewareSet{
-		func(ctx *fasthttp.RequestCtx) *fasthttp.RequestCtx {
-			token, cookie := ctx.Request.Header.Peek("Authorization"), ctx.Request.Header.Cookie("token")
-			if token == nil {
-				ctx.Response.SetStatusCode(fasthttp.StatusUnauthorized)
-				return ctx
+func Auth(tokenChecker func(authorizaionHeader string, tokenCookie *http.Cookie) bool) Set {
+	return Set{
+		Request: func(req *http.Request) (*http.Request, int) {
+			authorizationHeader := req.Header.Get("Authorization")
+			tokenCookie, _ := req.Cookie("token")
+			if tokenChecker(authorizationHeader, tokenCookie) {
+				return req, http.StatusOK
 			}
-			if err := tokenChecker(token, cookie); err != nil {
-				ctx.Response.SetStatusCode(fasthttp.StatusUnauthorized)
-				return ctx
-			}
-			return ctx
+			return req, http.StatusUnauthorized
 		},
-		nil,
+		Response: nil,
 	}
 }
