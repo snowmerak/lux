@@ -2,21 +2,10 @@ package swagger
 
 type Swagger struct {
 	SwaggerVersion string `json:"swagger,omitempty"`
-	Info           struct {
-		Title       string `json:"title,omitempty"`
-		Description string `json:"description,omitempty"`
-		Version     string `json:"version,omitempty"`
-		Contact     struct {
-			Email string `json:"email,omitempty"`
-		} `json:"contact,omitempty"`
-		License struct {
-			Name string `json:"name,omitempty"`
-			URL  string `json:"url,omitempty"`
-		} `json:"license,omitempty"`
-	} `json:"info,omitempty"`
-	Host     string `json:"host,omitempty"`
-	BasePath string `json:"basePath,omitempty"`
-	Tags     []struct {
+	Info           Info   `json:"info,omitempty"`
+	Host           string `json:"host,omitempty"`
+	BasePath       string `json:"basePath,omitempty"`
+	Tags           []struct {
 		Name         string `json:"name,omitempty"`
 		Description  string `json:"description,omitempty"`
 		ExternalDocs struct {
@@ -32,6 +21,19 @@ type Swagger struct {
 		Description string `json:"description,omitempty"`
 		URL         string `json:"url,omitempty"`
 	} `json:"externalDocs,omitempty"`
+}
+
+type Info struct {
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+	Version     string `json:"version,omitempty"`
+	Contact     struct {
+		Email string `json:"email,omitempty"`
+	} `json:"contact,omitempty"`
+	License struct {
+		Name string `json:"name,omitempty"`
+		URL  string `json:"url,omitempty"`
+	} `json:"license,omitempty"`
 }
 
 type Path string
