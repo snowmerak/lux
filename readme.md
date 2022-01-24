@@ -2,7 +2,7 @@
 
 A web library collection based on net/http.
 
-## hello, world!
+## listen and serve
 
 ### HTTP
 
