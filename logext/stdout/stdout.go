@@ -1,6 +1,7 @@
 package stdout
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -14,8 +15,9 @@ type Stdout struct {
 }
 
 func New(bufSize int) *Stdout {
+	writer := os.Stdout
 	stdout := &Stdout{
-		writer: os.Stdout,
+		writer: writer,
 		buffer: queue.NewRingBuffer(uint64(bufSize)),
 		signal: make(chan struct{}, uint64(bufSize)),
 	}
@@ -25,7 +27,7 @@ func New(bufSize int) *Stdout {
 			if err != nil {
 				return
 			}
-			stdout.writer.Write(append(v.([]byte), '\n'))
+			fmt.Fprintln(writer, v.(string))
 		}
 	}()
 	return stdout
@@ -37,7 +39,7 @@ func (s *Stdout) Dispose() {
 }
 
 func (s *Stdout) Write(p []byte) (n int, err error) {
-	s.buffer.Put(p)
+	s.buffer.Put(string(p))
 	s.signal <- struct{}{}
 	return len(p), nil
 }
