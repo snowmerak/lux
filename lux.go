@@ -1,8 +1,10 @@
 package lux
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -12,6 +14,8 @@ import (
 	"github.com/snowmerak/lux/logext/stdout"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/router"
+	"github.com/snowmerak/lux/swagger"
+	"github.com/snowmerak/lux/util"
 	"golang.org/x/net/http2"
 )
 
@@ -21,15 +25,22 @@ type Lux struct {
 	server        *http.Server
 	middlewares   []middleware.Set
 	buildedRouter *httprouter.Router
+	swagger       *swagger.Swagger
 }
 
-func New(middlewares ...middleware.Set) *Lux {
+func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
+	swg := new(swagger.Swagger)
+	if swaggerInfo != nil {
+		swg.Info = *swaggerInfo
+	}
+	swg.SwaggerVersion = "2.0"
 	return &Lux{
 		routers:       []*router.RouterGroup{},
 		logger:        logext.New(stdout.New(8)),
 		server:        new(http.Server),
 		middlewares:   middlewares,
 		buildedRouter: httprouter.New(),
+		swagger:       swg,
 	}
 }
 
@@ -55,6 +66,42 @@ func (l *Lux) SetIdleTimeout(duration time.Duration) {
 
 func (l *Lux) SetMaxHeaderBytes(n int) {
 	l.server.MaxHeaderBytes = n
+}
+
+func (l *Lux) SetInfoEmail(email string) {
+	l.swagger.Info.Contact.Email = email
+}
+
+func (l *Lux) SetInfoLicense(name, link string) {
+	l.swagger.Info.License.Name = name
+	l.swagger.Info.License.URL = link
+}
+
+func (l *Lux) ShowSwagger(path string, middlewares ...middleware.Set) {
+	swaggerjson, err := json.Marshal(l.swagger)
+	if err != nil {
+		panic(err)
+	}
+	swagger.Dist["swagger.json"] = swaggerjson
+
+	rg := l.NewRouterGroup(path, middlewares...)
+	rg.GET("/*filepath", func(lc *context.LuxContext) error {
+		filename := lc.GetPathVariable("filepath")
+		filename = strings.TrimPrefix(filename, "/")
+		if filename == "" {
+			filename = "index.html"
+		}
+		if _, ok := swagger.Dist[filename]; !ok {
+			lc.SetBadRequest()
+			return nil
+		}
+		lc.Response.Headers.Set("Content-Type", util.GetContentTypeFromExt(filepath.Ext(filename)))
+		lc.Response.Body = swagger.Dist[filename]
+		lc.SetOK()
+		return nil
+	}, nil)
+
+	l.logger.Infof("Swagger is available at %s/", path)
 }
 
 func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -96,8 +143,8 @@ func (l *Lux) buildServer(addr string) {
 		}
 	}
 	l.routers = nil
-	fmt.Println("Lux is ready to serve")
-	fmt.Printf("listen and serve on %s\n", addr)
+	l.logger.Infof("Server is ready to serve")
+	l.logger.Infof("listen and serve on %s\n", addr)
 }
 
 func (l *Lux) ListenAndServe1(addr string) error {

@@ -11,6 +11,7 @@ import (
 	"github.com/snowmerak/lux/handler"
 	"github.com/snowmerak/lux/logext"
 	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
 	"github.com/snowmerak/lux/util"
 )
 
@@ -26,35 +27,35 @@ func (r *Router) UseMiddlewares(middlewares ...middleware.Set) {
 	r.Middlewares = append(r.Middlewares, middlewares...)
 }
 
-func (r *RouterGroup) GET(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("GET", path, handler, middlewares...)
+func (r *RouterGroup) GET(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("GET", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) POST(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("POST", path, handler, middlewares...)
+func (r *RouterGroup) POST(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("POST", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) PATCH(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("PATCH", path, handler, middlewares...)
+func (r *RouterGroup) PATCH(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("PATCH", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) PUT(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("PUT", path, handler, middlewares...)
+func (r *RouterGroup) PUT(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("PUT", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) DELETE(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("DELETE", path, handler, middlewares...)
+func (r *RouterGroup) DELETE(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("DELETE", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) OPTIONS(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("OPTIONS", path, handler, middlewares...)
+func (r *RouterGroup) OPTIONS(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("OPTIONS", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) HEAD(path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
-	return r.AddRouter("HEAD", path, handler, middlewares...)
+func (r *RouterGroup) HEAD(path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	return r.AddRouter("HEAD", path, handler, swaggerRouter, middlewares...)
 }
 
-func (r *RouterGroup) Preflight(allowOrigins, allowMethods, allowHeaders []string, middlewares ...middleware.Set) *Router {
+func (r *RouterGroup) Preflight(allowOrigins, allowMethods, allowHeaders []string, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
 	return r.OPTIONS("/", func(l *context.LuxContext) error {
 		origin := l.Request.Header.Get("Origin")
 		for _, o := range allowOrigins {
@@ -83,7 +84,7 @@ func (r *RouterGroup) Preflight(allowOrigins, allowMethods, allowHeaders []strin
 		l.Response.Headers.Set("Access-Control-Max-Age", "86400")
 		l.Response.StatusCode = 200
 		return nil
-	}, middlewares...)
+	}, swaggerRouter, middlewares...)
 }
 
 func (r *RouterGroup) Statics(path string, folderPath string, middlewares ...middleware.Set) *Router {
@@ -115,7 +116,7 @@ func (r *RouterGroup) Statics(path string, folderPath string, middlewares ...mid
 		l.Response.Body = data
 		l.SetOK()
 		return nil
-	})
+	}, nil)
 }
 
 func (r *RouterGroup) Embedded(path string, embed fs.FS, middlewares ...middleware.Set) *Router {
@@ -142,5 +143,5 @@ func (r *RouterGroup) Embedded(path string, embed fs.FS, middlewares ...middlewa
 		l.Response.Body = data
 		l.SetOK()
 		return nil
-	})
+	}, nil)
 }

@@ -1,10 +1,13 @@
 package router
 
 import (
+	"strings"
+
 	"github.com/snowmerak/lux/context"
 	"github.com/snowmerak/lux/handler"
 	"github.com/snowmerak/lux/logext"
 	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
 )
 
 type RouterGroup struct {
@@ -13,13 +16,25 @@ type RouterGroup struct {
 	Routers         map[string]map[string]*Router
 	SubRouterGroups []*RouterGroup
 	Logger          *logext.Logger
+	Swagger         *swagger.Swagger
 }
 
 func (r *RouterGroup) UseMiddlewares(middlewares ...middleware.Set) {
 	r.Middlewares = append(r.Middlewares, middlewares...)
 }
 
-func (r *RouterGroup) AddRouter(method, path string, handler handler.Handler, middlewares ...middleware.Set) *Router {
+func (r *RouterGroup) AddRouter(method, path string, handler handler.Handler, swaggerRouter *swagger.Router, middlewares ...middleware.Set) *Router {
+	if swaggerRouter != nil {
+		p := r.Path + path
+		m := strings.ToLower(method)
+		if r.Swagger.Paths == nil {
+			r.Swagger.Paths = map[swagger.Path]map[swagger.Method]swagger.Router{}
+		}
+		if _, ok := r.Swagger.Paths[swagger.Path(p)]; !ok {
+			r.Swagger.Paths[swagger.Path(p)] = map[swagger.Method]swagger.Router{}
+		}
+		r.Swagger.Paths[swagger.Path(p)][swagger.Method(m)] = *swaggerRouter
+	}
 	router := &Router{
 		Handler:     handler,
 		Middlewares: middlewares,
@@ -51,5 +66,6 @@ func (r *RouterGroup) AddRouter(method, path string, handler handler.Handler, mi
 		r.Routers[r.Path+path] = map[string]*Router{}
 	}
 	r.Routers[r.Path+path][method] = router
+
 	return router
 }
