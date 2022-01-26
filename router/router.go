@@ -145,3 +145,8 @@ func (r *RouterGroup) Embedded(path string, embed fs.FS, middlewares ...middlewa
 		return nil
 	}, nil)
 }
+
+func (r *RouterGroup) Websocket(path string, wsHandler handler.WSHandler, middlewares ...middleware.Set) *Router {
+	handler := handler.WSWrap(wsHandler)
+	return r.AddRouter("GET", path, handler, nil, middlewares...)
+}

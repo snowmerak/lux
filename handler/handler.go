@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/gobwas/ws"
 	"github.com/julienschmidt/httprouter"
 	"github.com/snowmerak/lux/context"
 	"github.com/snowmerak/lux/logext"
@@ -25,5 +26,19 @@ func Wrap(logger *logext.Logger, handler Handler) func(http.ResponseWriter, *htt
 		if err := handler(luxCtx); err != nil {
 			logger.Errorf("Router %s %s: %s from %s", r.Method, r.URL.Path, err, r.RemoteAddr)
 		}
+	}
+}
+
+type WSHandler func(*context.WSContext) error
+
+func WSWrap(wsHandler WSHandler) Handler {
+	return func(luxCtx *context.LuxContext) error {
+		conn, _, _, err := ws.UpgradeHTTP(luxCtx.Request, luxCtx.Response)
+		if err != nil {
+			return err
+		}
+		wsCtx := new(context.WSContext)
+		wsCtx.Conn = conn
+		return wsHandler(wsCtx)
 	}
 }
