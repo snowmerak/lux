@@ -52,6 +52,30 @@ func main() {
 }
 ```
 
+### HTTP AUTO TLS
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/context"
+)
+
+func main() {
+	app := lux.New(nil)
+
+	rootRouterGroup := app.NewRouterGroup("/")
+	rootRouterGroup.GET("/", func(lc *context.LuxContext) error {
+		return lc.ReplyString("Hello World!")
+	}, nil)
+
+	if err := app.ListenAndServeAutoTLS(nil); err != nil {
+		panic(err)
+	}
+}
+```
+
 ### HTTP2
 
 ```go
@@ -95,6 +119,30 @@ func main() {
 	}, nil)
 
 	if err := app.ListenAndServe2TLS(":8080", "cert.pem", "key.pem"); err != nil {
+		panic(err)
+	}
+}
+```
+
+### HTTP2 AUTO TLS
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/context"
+)
+
+func main() {
+	app := lux.New(nil)
+
+	rootRouterGroup := app.NewRouterGroup("/")
+	rootRouterGroup.GET("/", func(lc *context.LuxContext) error {
+		return lc.ReplyString("Hello World!")
+	}, nil)
+
+	if err := app.ListenAndServe2AutoTLS(nil); err != nil {
 		panic(err)
 	}
 }
@@ -330,6 +378,122 @@ func (l *LuxContext) ReplyTar(data []byte) error
 func (l *LuxContext) ReplyGZIP(data []byte) error
 
 func (l *LuxContext) Reply7Z(data []byte) error
+```
+
+## websocket
+
+### echo text
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/context"
+	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
+)
+
+func main() {
+	app := lux.New(&swagger.Info{
+		Title:   "Lux API",
+		Version: "1.0.0",
+	})
+
+	rootGroup := app.NewRouterGroup("/", middleware.SetAllowCORS)
+	rootGroup.Websocket("/", func(w *context.WSContext) error {
+		defer w.Close()
+		recv, err := w.ReadText()
+		if err != nil {
+			return err
+		}
+		err = w.WriteText(recv)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err := app.ListenAndServe1(":8080"); err != nil {
+		panic(err)
+	}
+}
+```
+
+### echo binary
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/context"
+	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
+)
+
+func main() {
+	app := lux.New(&swagger.Info{
+		Title:   "Lux API",
+		Version: "1.0.0",
+	})
+
+	rootGroup := app.NewRouterGroup("/", middleware.SetAllowCORS)
+	rootGroup.Websocket("/", func(w *context.WSContext) error {
+		defer w.Close()
+		recv, err := w.ReadBinary()
+		if err != nil {
+			return err
+		}
+		err = w.WriteBinary(recv)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err := app.ListenAndServe2(":8080"); err != nil {
+		panic(err)
+	}
+}
+```
+
+### echo data with op code
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/context"
+	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
+)
+
+func main() {
+	app := lux.New(&swagger.Info{
+		Title:   "Lux API",
+		Version: "1.0.0",
+	})
+
+	rootGroup := app.NewRouterGroup("/", middleware.SetAllowCORS)
+	rootGroup.Websocket("/", func(w *context.WSContext) error {
+		defer w.Close()
+		recv, op, err := w.ReadData()
+		if err != nil {
+			return err
+		}
+		err = w.WriteData(recv, op)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err := app.ListenAndServe2(":8080"); err != nil {
+		panic(err)
+	}
+}
 ```
 
 ## set status
