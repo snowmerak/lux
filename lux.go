@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/caddyserver/certmagic"
 	"github.com/julienschmidt/httprouter"
 	"github.com/snowmerak/lux/context"
 	"github.com/snowmerak/lux/handler"
@@ -165,6 +166,18 @@ func (l *Lux) ListenAndServe1TLS(addr string, certFile string, keyFile string) e
 	return nil
 }
 
+func (l *Lux) ListenAndServe1AutoTLS(addr []string) error {
+	if len(addr) == 0 {
+		addr = []string{"localhost:443"}
+	}
+	l.buildServer(addr[0])
+	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
+		l.logger.Fatalf("ListenAndServeAutoHTTPS: %s", err)
+		return err
+	}
+	return nil
+}
+
 func (l *Lux) ListenAndServe2(addr string) error {
 	l.buildServer(addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
@@ -186,6 +199,22 @@ func (l *Lux) ListenAndServe2TLS(addr string, certFile string, keyFile string) e
 	}
 	if err := l.server.ListenAndServeTLS(certFile, keyFile); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (l *Lux) ListenAndServe2AutoTLS(addr []string) error {
+	if len(addr) == 0 {
+		addr = []string{"localhost:443"}
+	}
+	l.buildServer(addr[0])
+	if err := http2.ConfigureServer(l.server, nil); err != nil {
+		l.logger.Fatalf("ListenAndServeAutoHTTPS2: %s", err)
+		return err
+	}
+	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
+		l.logger.Fatalf("ListenAndServeAutoHTTPS2: %s", err)
 		return err
 	}
 	return nil
