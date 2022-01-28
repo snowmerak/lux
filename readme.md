@@ -402,7 +402,6 @@ func main() {
 
 	rootGroup := app.NewRouterGroup("/", middleware.SetAllowCORS)
 	rootGroup.Websocket("/", func(w *context.WSContext) error {
-		defer w.Close()
 		recv, err := w.ReadText()
 		if err != nil {
 			return err
@@ -440,7 +439,6 @@ func main() {
 
 	rootGroup := app.NewRouterGroup("/", middleware.SetAllowCORS)
 	rootGroup.Websocket("/", func(w *context.WSContext) error {
-		defer w.Close()
 		recv, err := w.ReadBinary()
 		if err != nil {
 			return err
@@ -478,7 +476,6 @@ func main() {
 
 	rootGroup := app.NewRouterGroup("/", middleware.SetAllowCORS)
 	rootGroup.Websocket("/", func(w *context.WSContext) error {
-		defer w.Close()
 		recv, op, err := w.ReadData()
 		if err != nil {
 			return err

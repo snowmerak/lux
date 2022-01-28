@@ -37,8 +37,12 @@ func WSWrap(wsHandler WSHandler) Handler {
 		if err != nil {
 			return err
 		}
+		defer conn.Close()
 		wsCtx := new(context.WSContext)
 		wsCtx.Conn = conn
-		return wsHandler(wsCtx)
+		if err := wsHandler(wsCtx); err != nil {
+			return err
+		}
+		return nil
 	}
 }
