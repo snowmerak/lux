@@ -3,8 +3,8 @@ package lux
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/caddyserver/certmagic"
@@ -16,7 +16,6 @@ import (
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/router"
 	"github.com/snowmerak/lux/swagger"
-	"github.com/snowmerak/lux/util"
 	"golang.org/x/net/http2"
 )
 
@@ -83,24 +82,17 @@ func (l *Lux) ShowSwagger(path string, middlewares ...middleware.Set) {
 	if err != nil {
 		panic(err)
 	}
-	swagger.Dist["swagger.json"] = swaggerjson
+
+	f, err := os.Create(filepath.Join(".", "swagger", "dist", "swagger.json"))
+	if err != nil {
+		panic(err)
+	}
+
+	f.Write(swaggerjson)
+	f.Close()
 
 	rg := l.NewRouterGroup(path, middlewares...)
-	rg.GET("/*filepath", func(lc *context.LuxContext) error {
-		filename := lc.GetPathVariable("filepath")
-		filename = strings.TrimPrefix(filename, "/")
-		if filename == "" {
-			filename = "index.html"
-		}
-		if _, ok := swagger.Dist[filename]; !ok {
-			lc.SetBadRequest()
-			return nil
-		}
-		lc.Response.Headers.Set("Content-Type", util.GetContentTypeFromExt(filepath.Ext(filename)))
-		lc.Response.Body = swagger.Dist[filename]
-		lc.SetOK()
-		return nil
-	}, nil)
+	rg.Statics("/", filepath.Join(".", "swagger", "dist"))
 
 	l.logger.Infof("Swagger is available at %s/", path)
 }
