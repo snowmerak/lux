@@ -3,8 +3,8 @@ package lux
 import (
 	"strings"
 
-	"github.com/snowmerak/lux/middleware"
-	"github.com/snowmerak/lux/router"
+	"github.com/diy-cloud/lux/middleware"
+	"github.com/diy-cloud/lux/router"
 )
 
 func (l *Lux) NewRouterGroup(path string, middlewares ...middleware.Set) *router.RouterGroup {

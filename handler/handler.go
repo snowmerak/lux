@@ -3,10 +3,10 @@ package handler
 import (
 	"net/http"
 
+	"github.com/diy-cloud/lux/context"
+	"github.com/diy-cloud/lux/logext"
 	"github.com/gobwas/ws"
 	"github.com/julienschmidt/httprouter"
-	"github.com/snowmerak/lux/context"
-	"github.com/snowmerak/lux/logext"
 )
 
 type Handler func(*context.LuxContext) error

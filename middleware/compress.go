@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/andybalholm/brotli"
+	"github.com/diy-cloud/lux/context"
 	"github.com/golang/snappy"
-	"github.com/snowmerak/lux/context"
 )
 
 var CompressSnappy = Set{

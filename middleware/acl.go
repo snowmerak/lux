@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/snowmerak/lux/util"
+	"github.com/diy-cloud/lux/util"
 )
 
 func AllowStaticIPs(ips ...string) Set {
