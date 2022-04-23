@@ -1501,6 +1501,8 @@ func main() {
 
 ## swagger
 
+if you want swagger, you must copy swagger/dist folder in your project.
+
 ### app info
 
 ```go
