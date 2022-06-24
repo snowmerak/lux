@@ -3,7 +3,7 @@ package middleware
 import (
 	"strings"
 
-	"github.com/diy-cloud/lux/context"
+	"github.com/snowmerak/lux/context"
 )
 
 func SetAllowHeaders(headers ...string) Set {

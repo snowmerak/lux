@@ -1,4 +1,4 @@
-module github.com/diy-cloud/lux
+module github.com/snowmerak/lux
 
 go 1.16
 

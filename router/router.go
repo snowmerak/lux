@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/diy-cloud/lux/context"
-	"github.com/diy-cloud/lux/handler"
-	"github.com/diy-cloud/lux/logext"
-	"github.com/diy-cloud/lux/middleware"
-	"github.com/diy-cloud/lux/swagger"
-	"github.com/diy-cloud/lux/util"
+	"github.com/snowmerak/lux/context"
+	"github.com/snowmerak/lux/handler"
+	"github.com/snowmerak/lux/logext"
+	"github.com/snowmerak/lux/middleware"
+	"github.com/snowmerak/lux/swagger"
+	"github.com/snowmerak/lux/util"
 )
 
 type Router struct {
