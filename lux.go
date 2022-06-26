@@ -15,6 +15,7 @@ import (
 	"github.com/snowmerak/lux/logext/stdout"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/router"
+	"github.com/snowmerak/lux/session"
 	"github.com/snowmerak/lux/swagger"
 	"golang.org/x/net/http2"
 )
@@ -26,6 +27,7 @@ type Lux struct {
 	middlewares   []middleware.Set
 	buildedRouter *httprouter.Router
 	swagger       *swagger.Swagger
+	session       *session.Local
 }
 
 func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
@@ -41,6 +43,7 @@ func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
 		middlewares:   middlewares,
 		buildedRouter: httprouter.New(),
 		swagger:       swg,
+		session:       session.NewLocal(),
 	}
 }
 
@@ -99,6 +102,7 @@ func (l *Lux) ShowSwagger(path string, middlewares ...middleware.Set) {
 
 func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	luxCtx := new(context.LuxContext)
+	luxCtx.LocalSession = l.session
 	luxCtx.Request = r
 	luxCtx.Response = context.NewResponse()
 	defer func() {

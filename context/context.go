@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/snowmerak/lux/session"
 )
 
 type Response struct {
@@ -34,9 +35,10 @@ func (r *Response) Write(p []byte) (int, error) {
 }
 
 type LuxContext struct {
-	Request     *http.Request
-	Response    *Response
-	RouteParams httprouter.Params
+	Request      *http.Request
+	Response     *Response
+	RouteParams  httprouter.Params
+	LocalSession *session.Local
 }
 
 func (l *LuxContext) IsOk() bool {
