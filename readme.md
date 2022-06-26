@@ -1658,3 +1658,44 @@ app.ShowSwagger("/swagger")
 ```
 
 `Lux.ShowSwagger()` method build swagger to given path.
+
+## session
+
+### get, remove, set
+
+```go
+package main
+
+import (
+	"github.com/snowmerak/lux"
+	"github.com/snowmerak/lux/context"
+	"github.com/snowmerak/lux/session"
+)
+
+func main() {
+	app := lux.New(nil)
+
+	root := app.NewRouterGroup("/")
+	root.GET("/", func(lc *context.LuxContext) error {
+		strPtr, err := session.GetLocal[string](lc.LocalSession, []byte(lc.GetRemoteIP()))
+		if err != nil {
+			lc.SetUnauthorized()
+			return nil
+		}
+		if _, err := session.RemoveLocal[string](lc.LocalSession, []byte(lc.GetRemoteIP())); err != nil {
+			lc.SetUnauthorized()
+			return nil
+		}
+		*strPtr = "hello, world!"
+		if err := session.SetLocal(lc.LocalSession, []byte(lc.GetRemoteIP()), *strPtr); err != nil {
+			lc.SetConflict()
+			return nil
+		}
+		return lc.ReplyPlainText("OK!")
+	}, nil)
+
+	if err := app.ListenAndServe2(":8080"); err != nil {
+		panic(err)
+	}
+}
+```
