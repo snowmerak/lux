@@ -36,6 +36,8 @@ func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
 		swg.Info = *swaggerInfo
 	}
 	swg.SwaggerVersion = "2.0"
+	localSession := session.NewLocal()
+	session.StartGC(localSession)
 	return &Lux{
 		routers:       []*router.RouterGroup{},
 		logger:        logext.New(stdout.New(8)),
@@ -43,7 +45,7 @@ func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
 		middlewares:   middlewares,
 		buildedRouter: httprouter.New(),
 		swagger:       swg,
-		session:       session.NewLocal(),
+		session:       localSession,
 	}
 }
 
