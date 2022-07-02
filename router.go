@@ -16,9 +16,7 @@ func (l *Lux) NewRouterGroup(path string, middlewares ...middleware.Set) *router
 		Logger:          l.logger,
 		Swagger:         l.swagger,
 	}
-	if strings.HasSuffix(rg.Path, "/") {
-		rg.Path = strings.TrimSuffix(rg.Path, "/")
-	}
+	rg.Path = strings.TrimSuffix(rg.Path, "/")
 	l.routers = append(l.routers, rg)
 	return rg
 }
