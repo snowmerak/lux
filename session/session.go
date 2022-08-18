@@ -34,6 +34,7 @@ type Local struct {
 // NewLocal create new Local instance
 func NewLocal() *Local {
 	return &Local{
+		ttl:     int64(time.Minute * 30),
 		data:    *ctrie.New(nil),
 		counter: make(chan struct{}, 1),
 	}
