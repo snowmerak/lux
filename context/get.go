@@ -1,6 +1,7 @@
 package context
 
 import (
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"os"
@@ -62,7 +63,12 @@ func (l *LuxContext) GetPathVariable(key string) string {
 }
 
 func (l *LuxContext) GetBody() ([]byte, error) {
-	return io.ReadAll(l.Request.Body)
+	data, err := io.ReadAll(l.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	l.Request.Body.Close()
+	return data, nil
 }
 
 func (l *LuxContext) GetBodyReader() io.ReadCloser {
@@ -107,4 +113,15 @@ func (l *LuxContext) GetRemotePort() string {
 		return ""
 	}
 	return addr[end+1:]
+}
+
+func (l *LuxContext) ParseJSON(v interface{}) error {
+	decoder := json.NewDecoder(l.Request.Body)
+	if err := decoder.Decode(v); err != nil {
+		return err
+	}
+	if err := l.Request.Body.Close(); err != nil {
+		return err
+	}
+	return nil
 }
