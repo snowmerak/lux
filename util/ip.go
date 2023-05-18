@@ -1,31 +1,13 @@
 package util
 
+import "net"
+
 func GetIP(addr string) string {
-	i := 0
-	end := -1
-	for i < len(addr) {
-		if addr[i] == ':' {
-			end = i
-		}
-		i++
-	}
-	if end == -1 {
-		return ""
-	}
-	return addr[:end]
+	ip, _, _ := net.SplitHostPort(addr)
+	return ip
 }
 
 func GetPort(addr string) string {
-	i := 0
-	end := -1
-	for i < len(addr) {
-		if addr[i] == ':' {
-			end = i
-		}
-		i++
-	}
-	if end == -1 {
-		return ""
-	}
-	return addr[end+1:]
+	_, port, _ := net.SplitHostPort(addr)
+	return port
 }
