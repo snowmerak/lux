@@ -21,14 +21,14 @@ import (
 )
 
 type Lux struct {
-	routers       []*router.RouterGroup
-	logger        *zerolog.Logger
-	server        *http.Server
-	middlewares   []middleware.Set
-	buildedRouter *httprouter.Router
-	swagger       *swagger.Swagger
-	session       *session.Local
-	ctx           ctx.Context
+	routers     []*router.RouterGroup
+	logger      *zerolog.Logger
+	server      *http.Server
+	middlewares []middleware.Set
+	builtRouter *httprouter.Router
+	swagger     *swagger.Swagger
+	session     *session.Local
+	ctx         ctx.Context
 }
 
 func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middleware.Set) *Lux {
@@ -40,13 +40,13 @@ func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middl
 	localSession := session.NewLocal()
 	session.StartGC(localSession)
 	return &Lux{
-		routers:       []*router.RouterGroup{},
-		logger:        logger,
-		server:        new(http.Server),
-		middlewares:   middlewares,
-		buildedRouter: httprouter.New(),
-		swagger:       swg,
-		session:       localSession,
+		routers:     []*router.RouterGroup{},
+		logger:      logger,
+		server:      new(http.Server),
+		middlewares: middlewares,
+		builtRouter: httprouter.New(),
+		swagger:     swg,
+		session:     localSession,
 	}
 }
 
@@ -121,7 +121,7 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		l.logger.Error().Str("error", rs).Msg("request middleware error")
 		return
 	}
-	l.buildedRouter.ServeHTTP(luxCtx.Response, luxCtx.Request)
+	l.builtRouter.ServeHTTP(luxCtx.Response, luxCtx.Request)
 	if !luxCtx.IsOk() {
 		return
 	}
@@ -134,11 +134,11 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (l *Lux) buildServer(ctx ctx.Context, addr string) {
 	l.server.Addr = addr
 	l.server.Handler = l
-	l.buildedRouter = new(httprouter.Router)
+	l.builtRouter = new(httprouter.Router)
 	for _, routerGroup := range l.routers {
 		for path, routerMap := range routerGroup.Routers {
 			for method, router := range routerMap {
-				l.buildedRouter.Handle(method, path, handler.Wrap(ctx, l.logger, router.Handler))
+				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, router.Handler))
 			}
 		}
 	}
@@ -169,7 +169,7 @@ func (l *Lux) ListenAndServe1AutoTLS(ctx ctx.Context, addr []string) error {
 		addr = []string{"localhost:443"}
 	}
 	l.buildServer(ctx, addr[0])
-	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
+	if err := certmagic.HTTPS(addr, l.builtRouter); err != nil {
 		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve Auto TLS error")
 		return err
 	}
@@ -211,7 +211,7 @@ func (l *Lux) ListenAndServe2AutoTLS(ctx ctx.Context, addr []string) error {
 		l.logger.Fatal().Str("error", err.Error()).Msg("Http2 configuration error")
 		return err
 	}
-	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
+	if err := certmagic.HTTPS(addr, l.builtRouter); err != nil {
 		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve http2 Auto TLS error")
 		return err
 	}
