@@ -11,7 +11,7 @@ import (
 	"github.com/snowmerak/lux/context"
 )
 
-var CompressSnappy = Set{
+var Snappy = Set{
 	Request: nil,
 	Response: func(l *context.LuxContext) (*context.LuxContext, error) {
 		acceptEncodings := strings.Split(l.Request.Header.Get("Accept-Encoding"), ", ")
@@ -33,7 +33,7 @@ var CompressSnappy = Set{
 	},
 }
 
-var CompressGzip = Set{
+var Gzip = Set{
 	Request: nil,
 	Response: func(l *context.LuxContext) (*context.LuxContext, error) {
 		acceptEncodings := strings.Split(l.Request.Header.Get("Accept-Encoding"), ", ")
@@ -59,7 +59,7 @@ var CompressGzip = Set{
 	},
 }
 
-var CompressBrotli = Set{
+var Brotli = Set{
 	Request: nil,
 	Response: func(l *context.LuxContext) (*context.LuxContext, error) {
 		acceptEncodings := strings.Split(l.Request.Header.Get("Accept-Encoding"), ", ")
