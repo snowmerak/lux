@@ -19,7 +19,7 @@ var Snappy = Set{
 			return l, nil
 		}
 		buf := bytes.NewBuffer(nil)
-		writer := snappy.NewWriter(buf)
+		writer := snappy.NewBufferedWriter(buf)
 		_, err := writer.Write(l.Response.Body)
 		if err != nil {
 			return l, err
