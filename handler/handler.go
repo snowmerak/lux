@@ -2,17 +2,17 @@ package handler
 
 import (
 	ctx "context"
+	"github.com/rs/zerolog"
 	"net/http"
 
 	"github.com/gobwas/ws"
 	"github.com/julienschmidt/httprouter"
 	"github.com/snowmerak/lux/context"
-	"github.com/snowmerak/lux/logext"
 )
 
 type Handler func(*context.LuxContext) error
 
-func Wrap(ctx ctx.Context, logger *logext.Logger, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func Wrap(ctx ctx.Context, logger *zerolog.Logger, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		luxCtx := new(context.LuxContext)
 		luxCtx.Context = ctx
@@ -20,13 +20,13 @@ func Wrap(ctx ctx.Context, logger *logext.Logger, handler Handler) func(http.Res
 		ok := false
 		luxCtx.Response, ok = w.(*context.Response)
 		if !ok {
-			logger.Errorf("Router %s %s: Response is not a context.Response", r.Method, r.URL.Path)
+			logger.Error().Str("method", r.Method).Str("path", r.URL.Path).Msg("Response is not a context.Response")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		luxCtx.RouteParams = ps
 		if err := handler(luxCtx); err != nil {
-			logger.Errorf("Router %s %s: %s from %s", r.Method, r.URL.Path, err, r.RemoteAddr)
+			logger.Error().Str("method", r.Method).Str("path", r.URL.Path).Str("remote", r.RemoteAddr).Err(err).Msg("Handler error")
 		}
 	}
 }

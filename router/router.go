@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/rs/zerolog"
 	"io"
 	"io/fs"
 	"os"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/snowmerak/lux/context"
 	"github.com/snowmerak/lux/handler"
-	"github.com/snowmerak/lux/logext"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/swagger"
 	"github.com/snowmerak/lux/util"
@@ -20,7 +20,7 @@ type Router struct {
 	Middlewares []middleware.Set
 	Method      string
 
-	logger *logext.Logger
+	logger *zerolog.Logger
 }
 
 func (r *Router) UseMiddlewares(middlewares ...middleware.Set) {

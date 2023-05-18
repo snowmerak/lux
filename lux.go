@@ -3,6 +3,7 @@ package lux
 import (
 	ctx "context"
 	"encoding/json"
+	"github.com/rs/zerolog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,8 +13,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/snowmerak/lux/context"
 	"github.com/snowmerak/lux/handler"
-	"github.com/snowmerak/lux/logext"
-	"github.com/snowmerak/lux/logext/stdout"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/router"
 	"github.com/snowmerak/lux/session"
@@ -23,7 +22,7 @@ import (
 
 type Lux struct {
 	routers       []*router.RouterGroup
-	logger        *logext.Logger
+	logger        *zerolog.Logger
 	server        *http.Server
 	middlewares   []middleware.Set
 	buildedRouter *httprouter.Router
@@ -32,7 +31,7 @@ type Lux struct {
 	ctx           ctx.Context
 }
 
-func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
+func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middleware.Set) *Lux {
 	swg := new(swagger.Swagger)
 	if swaggerInfo != nil {
 		swg.Info = *swaggerInfo
@@ -42,7 +41,7 @@ func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
 	session.StartGC(localSession)
 	return &Lux{
 		routers:       []*router.RouterGroup{},
-		logger:        logext.New(stdout.New(8)),
+		logger:        logger,
 		server:        new(http.Server),
 		middlewares:   middlewares,
 		buildedRouter: httprouter.New(),
@@ -51,7 +50,7 @@ func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
 	}
 }
 
-func (l *Lux) SetLogger(logger *logext.Logger) {
+func (l *Lux) SetLogger(logger *zerolog.Logger) {
 	l.logger = logger
 }
 
@@ -101,7 +100,7 @@ func (l *Lux) ShowSwagger(path string, middlewares ...middleware.Set) {
 	rg := l.NewRouterGroup(path, middlewares...)
 	rg.Statics("/", filepath.Join(".", "swagger", "dist"))
 
-	l.logger.Infof("Swagger is available at %s/", path)
+	l.logger.Warn().Str("path", path).Msg("Swagger is available")
 }
 
 func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +118,7 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(luxCtx.Response.Body)
 	}()
 	if rs := middleware.ApplyRequests(luxCtx, l.middlewares); rs != "" {
-		l.logger.Warnf(rs)
+		l.logger.Error().Str("error", rs).Msg("request middleware error")
 		return
 	}
 	l.buildedRouter.ServeHTTP(luxCtx.Response, luxCtx.Request)
@@ -127,7 +126,7 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if rs := middleware.ApplyResponses(luxCtx, l.middlewares); rs != "" {
-		l.logger.Warnf(rs)
+		l.logger.Error().Str("error", rs).Msg("response middleware error")
 		return
 	}
 }
@@ -144,14 +143,13 @@ func (l *Lux) buildServer(ctx ctx.Context, addr string) {
 		}
 	}
 	l.routers = nil
-	l.logger.Infof("Server is ready to serve")
-	l.logger.Infof("listen and serve on %s\n", addr)
+	l.logger.Info().Str("addr", addr).Msg("Server is ready to serve")
 }
 
 func (l *Lux) ListenAndServe1(ctx ctx.Context, addr string) error {
 	l.buildServer(ctx, addr)
 	if err := l.server.ListenAndServe(); err != nil {
-		l.logger.Fatalf("ListenAndServeHTTP: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve error")
 		return err
 	}
 	return nil
@@ -160,7 +158,7 @@ func (l *Lux) ListenAndServe1(ctx ctx.Context, addr string) error {
 func (l *Lux) ListenAndServe1TLS(ctx ctx.Context, addr string, certFile string, keyFile string) error {
 	l.buildServer(ctx, addr)
 	if err := l.server.ListenAndServeTLS(certFile, keyFile); err != nil {
-		l.logger.Fatalf("ListenAndServeHTTPS: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve TLS error")
 		return err
 	}
 	return nil
@@ -172,7 +170,7 @@ func (l *Lux) ListenAndServe1AutoTLS(ctx ctx.Context, addr []string) error {
 	}
 	l.buildServer(ctx, addr[0])
 	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
-		l.logger.Fatalf("ListenAndServeAutoHTTPS: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve Auto TLS error")
 		return err
 	}
 	return nil
@@ -181,11 +179,11 @@ func (l *Lux) ListenAndServe1AutoTLS(ctx ctx.Context, addr []string) error {
 func (l *Lux) ListenAndServe2(ctx ctx.Context, addr string) error {
 	l.buildServer(ctx, addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
-		l.logger.Fatalf("ListenAndServeHTTP2: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Http2 configuration error")
 		return err
 	}
 	if err := l.server.ListenAndServe(); err != nil {
-		l.logger.Fatalf("ListenAndServeHTTP2: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve http2 error")
 		return err
 	}
 	return nil
@@ -194,11 +192,11 @@ func (l *Lux) ListenAndServe2(ctx ctx.Context, addr string) error {
 func (l *Lux) ListenAndServe2TLS(ctx ctx.Context, addr string, certFile string, keyFile string) error {
 	l.buildServer(ctx, addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
-		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Http2 configuration error")
 		return err
 	}
 	if err := l.server.ListenAndServeTLS(certFile, keyFile); err != nil {
-		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve http2 TLS error")
 		return err
 	}
 	return nil
@@ -210,11 +208,11 @@ func (l *Lux) ListenAndServe2AutoTLS(ctx ctx.Context, addr []string) error {
 	}
 	l.buildServer(ctx, addr[0])
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
-		l.logger.Fatalf("ListenAndServeAutoHTTPS2: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Http2 configuration error")
 		return err
 	}
 	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
-		l.logger.Fatalf("ListenAndServeAutoHTTPS2: %s", err)
+		l.logger.Fatal().Str("error", err.Error()).Msg("Listen and serve http2 Auto TLS error")
 		return err
 	}
 	return nil

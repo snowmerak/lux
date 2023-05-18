@@ -18,8 +18,11 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mholt/acmez v1.1.1 // indirect
 	github.com/miekg/dns v1.1.54 // indirect
+	github.com/rs/zerolog v1.29.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect

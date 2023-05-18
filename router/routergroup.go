@@ -1,11 +1,11 @@
 package router
 
 import (
+	"github.com/rs/zerolog"
 	"strings"
 
 	"github.com/snowmerak/lux/context"
 	"github.com/snowmerak/lux/handler"
-	"github.com/snowmerak/lux/logext"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/swagger"
 )
@@ -15,7 +15,7 @@ type RouterGroup struct {
 	Middlewares     []middleware.Set
 	Routers         map[string]map[string]*Router
 	SubRouterGroups []*RouterGroup
-	Logger          *logext.Logger
+	Logger          *zerolog.Logger
 	Swagger         *swagger.Swagger
 }
 
@@ -42,22 +42,22 @@ func (r *RouterGroup) AddRouter(method, path string, handler handler.Handler, sw
 	}
 	handler = func(ctx *context.LuxContext) error {
 		if rs := middleware.ApplyRequests(ctx, r.Middlewares); rs != "" {
-			r.Logger.Warnf("Router %s %s: %s from %s", ctx.Request.Method, ctx.Request.URL.Path, rs, ctx.Request.RemoteAddr)
+			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router group middleware error")
 			return nil
 		}
 		if rs := middleware.ApplyRequests(ctx, router.Middlewares); rs != "" {
-			r.Logger.Warnf("Router %s %s: %s from %s", ctx.Request.Method, ctx.Request.URL.Path, rs, ctx.Request.RemoteAddr)
+			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router middleware error")
 			return nil
 		}
 		if err := handler(ctx); err != nil {
 			return err
 		}
 		if rs := middleware.ApplyResponses(ctx, router.Middlewares); rs != "" {
-			r.Logger.Warnf("Router %s %s: %s from %s", ctx.Request.Method, ctx.Request.URL.Path, rs, ctx.Request.RemoteAddr)
+			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router middleware error")
 			return nil
 		}
 		if rs := middleware.ApplyResponses(ctx, r.Middlewares); rs != "" {
-			r.Logger.Warnf("Router %s %s: %s from %s", ctx.Request.Method, ctx.Request.URL.Path, rs, ctx.Request.RemoteAddr)
+			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router group middleware error")
 			return nil
 		}
 		return nil
