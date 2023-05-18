@@ -2,6 +2,7 @@ package context
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -41,6 +42,7 @@ type LuxContext struct {
 	RouteParams  httprouter.Params
 	LocalSession *session.Local
 	Context      context.Context
+	Logger       *zerolog.Logger
 }
 
 func (l *LuxContext) IsOk() bool {

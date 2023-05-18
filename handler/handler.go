@@ -17,6 +17,7 @@ func Wrap(ctx ctx.Context, logger *zerolog.Logger, handler Handler) func(http.Re
 		luxCtx := new(context.LuxContext)
 		luxCtx.Context = ctx
 		luxCtx.Request = r
+		luxCtx.Logger = logger
 		ok := false
 		luxCtx.Response, ok = w.(*context.Response)
 		if !ok {
