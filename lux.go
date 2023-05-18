@@ -1,6 +1,7 @@
 package lux
 
 import (
+	ctx "context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -28,6 +29,7 @@ type Lux struct {
 	buildedRouter *httprouter.Router
 	swagger       *swagger.Swagger
 	session       *session.Local
+	ctx           ctx.Context
 }
 
 func New(swaggerInfo *swagger.Info, middlewares ...middleware.Set) *Lux {
@@ -130,14 +132,14 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (l *Lux) buildServer(addr string) {
+func (l *Lux) buildServer(ctx ctx.Context, addr string) {
 	l.server.Addr = addr
 	l.server.Handler = l
 	l.buildedRouter = new(httprouter.Router)
 	for _, routerGroup := range l.routers {
 		for path, routerMap := range routerGroup.Routers {
 			for method, router := range routerMap {
-				l.buildedRouter.Handle(method, path, handler.Wrap(l.logger, router.Handler))
+				l.buildedRouter.Handle(method, path, handler.Wrap(ctx, l.logger, router.Handler))
 			}
 		}
 	}
@@ -146,8 +148,8 @@ func (l *Lux) buildServer(addr string) {
 	l.logger.Infof("listen and serve on %s\n", addr)
 }
 
-func (l *Lux) ListenAndServe1(addr string) error {
-	l.buildServer(addr)
+func (l *Lux) ListenAndServe1(ctx ctx.Context, addr string) error {
+	l.buildServer(ctx, addr)
 	if err := l.server.ListenAndServe(); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTP: %s", err)
 		return err
@@ -155,8 +157,8 @@ func (l *Lux) ListenAndServe1(addr string) error {
 	return nil
 }
 
-func (l *Lux) ListenAndServe1TLS(addr string, certFile string, keyFile string) error {
-	l.buildServer(addr)
+func (l *Lux) ListenAndServe1TLS(ctx ctx.Context, addr string, certFile string, keyFile string) error {
+	l.buildServer(ctx, addr)
 	if err := l.server.ListenAndServeTLS(certFile, keyFile); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTPS: %s", err)
 		return err
@@ -164,11 +166,11 @@ func (l *Lux) ListenAndServe1TLS(addr string, certFile string, keyFile string) e
 	return nil
 }
 
-func (l *Lux) ListenAndServe1AutoTLS(addr []string) error {
+func (l *Lux) ListenAndServe1AutoTLS(ctx ctx.Context, addr []string) error {
 	if len(addr) == 0 {
 		addr = []string{"localhost:443"}
 	}
-	l.buildServer(addr[0])
+	l.buildServer(ctx, addr[0])
 	if err := certmagic.HTTPS(addr, l.buildedRouter); err != nil {
 		l.logger.Fatalf("ListenAndServeAutoHTTPS: %s", err)
 		return err
@@ -176,8 +178,8 @@ func (l *Lux) ListenAndServe1AutoTLS(addr []string) error {
 	return nil
 }
 
-func (l *Lux) ListenAndServe2(addr string) error {
-	l.buildServer(addr)
+func (l *Lux) ListenAndServe2(ctx ctx.Context, addr string) error {
+	l.buildServer(ctx, addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTP2: %s", err)
 		return err
@@ -189,8 +191,8 @@ func (l *Lux) ListenAndServe2(addr string) error {
 	return nil
 }
 
-func (l *Lux) ListenAndServe2TLS(addr string, certFile string, keyFile string) error {
-	l.buildServer(addr)
+func (l *Lux) ListenAndServe2TLS(ctx ctx.Context, addr string, certFile string, keyFile string) error {
+	l.buildServer(ctx, addr)
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
 		l.logger.Fatalf("ListenAndServeHTTPS2: %s", err)
 		return err
@@ -202,11 +204,11 @@ func (l *Lux) ListenAndServe2TLS(addr string, certFile string, keyFile string) e
 	return nil
 }
 
-func (l *Lux) ListenAndServe2AutoTLS(addr []string) error {
+func (l *Lux) ListenAndServe2AutoTLS(ctx ctx.Context, addr []string) error {
 	if len(addr) == 0 {
 		addr = []string{"localhost:443"}
 	}
-	l.buildServer(addr[0])
+	l.buildServer(ctx, addr[0])
 	if err := http2.ConfigureServer(l.server, nil); err != nil {
 		l.logger.Fatalf("ListenAndServeAutoHTTPS2: %s", err)
 		return err

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	ctx "context"
 	"net/http"
 
 	"github.com/gobwas/ws"
@@ -11,9 +12,10 @@ import (
 
 type Handler func(*context.LuxContext) error
 
-func Wrap(logger *logext.Logger, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func Wrap(ctx ctx.Context, logger *logext.Logger, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		luxCtx := new(context.LuxContext)
+		luxCtx.Context = ctx
 		luxCtx.Request = r
 		ok := false
 		luxCtx.Response, ok = w.(*context.Response)

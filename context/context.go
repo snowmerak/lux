@@ -1,6 +1,7 @@
 package context
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -39,6 +40,7 @@ type LuxContext struct {
 	Response     *Response
 	RouteParams  httprouter.Params
 	LocalSession *session.Local
+	Context      context.Context
 }
 
 func (l *LuxContext) IsOk() bool {
