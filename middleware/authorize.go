@@ -2,12 +2,20 @@ package middleware
 
 import "net/http"
 
-func Auth(tokenChecker func(authorizationHeader string, tokenCookie *http.Cookie) bool) Set {
+type AuthChecker func(authorizationHeader string, tokenCookies ...*http.Cookie) bool
+
+func Auth(authChecker AuthChecker, tokenName ...string) Set {
 	return Set{
 		Request: func(req *http.Request) (*http.Request, int) {
 			authorizationHeader := req.Header.Get("Authorization")
-			tokenCookie, _ := req.Cookie("token")
-			if tokenChecker(authorizationHeader, tokenCookie) {
+			cookies := []*http.Cookie(nil)
+			for _, name := range tokenName {
+				cookie, err := req.Cookie(name)
+				if err == nil {
+					cookies = append(cookies, cookie)
+				}
+			}
+			if authChecker(authorizationHeader, cookies...) {
 				return req, http.StatusOK
 			}
 			return req, http.StatusUnauthorized
