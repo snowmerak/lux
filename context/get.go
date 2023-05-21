@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 )
 
@@ -75,8 +76,8 @@ func (l *LuxContext) GetBodyReader() io.ReadCloser {
 	return l.Request.Body
 }
 
-func (l *LuxContext) GetCookie(key string) string {
-	return l.Request.Header.Get("Cookie")
+func (l *LuxContext) GetCookie(key string) (*http.Cookie, error) {
+	return l.Request.Cookie(key)
 }
 
 func (l *LuxContext) GetRemoteAddress() string {
