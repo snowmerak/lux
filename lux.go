@@ -28,6 +28,7 @@ type Lux struct {
 	builtRouter *httprouter.Router
 	swagger     *swagger.Swagger
 	session     *session.Local
+	jwtConfig   *context.JWTConfig
 	ctx         ctx.Context
 }
 
@@ -83,6 +84,10 @@ func (l *Lux) SetInfoLicense(name, link string) {
 	l.swagger.Info.License.URL = link
 }
 
+func (l *Lux) SetJWTConfig(cfg *context.JWTConfig) {
+	l.jwtConfig = cfg
+}
+
 func (l *Lux) ShowSwagger(path string, middlewares ...middleware.Set) {
 	swaggerjson, err := json.Marshal(l.swagger)
 	if err != nil {
@@ -108,6 +113,8 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	luxCtx.LocalSession = l.session
 	luxCtx.Request = r
 	luxCtx.Response = context.NewResponse()
+	luxCtx.JWTConfig = l.jwtConfig
+	luxCtx.Logger = l.logger
 	defer func() {
 		for key, values := range luxCtx.Response.Headers {
 			for _, value := range values {
@@ -138,7 +145,7 @@ func (l *Lux) buildServer(ctx ctx.Context, addr string) {
 	for _, routerGroup := range l.routers {
 		for path, routerMap := range routerGroup.Routers {
 			for method, router := range routerMap {
-				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, router.Handler))
+				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, l.jwtConfig, router.Handler))
 			}
 		}
 	}

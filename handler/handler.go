@@ -12,12 +12,13 @@ import (
 
 type Handler func(*context.LuxContext) error
 
-func Wrap(ctx ctx.Context, logger *zerolog.Logger, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func Wrap(ctx ctx.Context, logger *zerolog.Logger, jwtCfg *context.JWTConfig, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		luxCtx := new(context.LuxContext)
 		luxCtx.Context = ctx
 		luxCtx.Request = r
 		luxCtx.Logger = logger
+		luxCtx.JWTConfig = jwtCfg
 		ok := false
 		luxCtx.Response, ok = w.(*context.Response)
 		if !ok {

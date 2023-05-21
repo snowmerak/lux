@@ -43,6 +43,7 @@ type LuxContext struct {
 	LocalSession *session.Local
 	Context      context.Context
 	Logger       *zerolog.Logger
+	JWTConfig    *JWTConfig
 }
 
 func (l *LuxContext) IsOk() bool {
