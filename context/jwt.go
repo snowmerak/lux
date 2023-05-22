@@ -38,7 +38,7 @@ func (l *LuxContext) JWT() *JWT {
 	j := new(JWT)
 	j.response = l.Response
 	j.request = l.Request
-	j.encryptionNonce = l.JWTConfig.EncryptionKey[:l.JWTConfig.EncryptionMethod.NonceSize()]
+	j.encryptionNonce = l.JWTConfig.EncryptionKey
 	j.encryptionMethod = l.JWTConfig.EncryptionMethod
 	j.signingKey = l.JWTConfig.SigningKey
 	j.signingMethod = l.JWTConfig.SigningMethod
