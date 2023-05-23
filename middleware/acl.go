@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/snowmerak/lux/context"
 	"net/http"
 
 	"github.com/snowmerak/lux/util"
@@ -8,7 +9,8 @@ import (
 
 func AllowStaticIPs(ips ...string) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remoteIP := util.GetIP(req.RemoteAddr)
 			for _, ip := range ips {
 				if remoteIP == ip {
@@ -23,7 +25,8 @@ func AllowStaticIPs(ips ...string) Set {
 
 func BlockStaticIPs(ips ...string) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remoteIP := util.GetIP(req.RemoteAddr)
 			for _, ip := range ips {
 				if remoteIP == ip {
@@ -38,7 +41,8 @@ func BlockStaticIPs(ips ...string) Set {
 
 func AllowDynamicIPs(checker func(remoteIP string) bool) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remoteIP := util.GetIP(req.RemoteAddr)
 			if checker(remoteIP) {
 				return req, http.StatusOK
@@ -51,7 +55,8 @@ func AllowDynamicIPs(checker func(remoteIP string) bool) Set {
 
 func BlockDynamicIPs(checker func(remoteIP string) bool) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remoteIP := util.GetIP(req.RemoteAddr)
 			if checker(remoteIP) {
 				return req, http.StatusForbidden
@@ -64,7 +69,8 @@ func BlockDynamicIPs(checker func(remoteIP string) bool) Set {
 
 func AllowStaticPorts(ports ...string) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remotePort := util.GetPort(req.RemoteAddr)
 			for _, port := range ports {
 				if remotePort == port {
@@ -79,7 +85,8 @@ func AllowStaticPorts(ports ...string) Set {
 
 func BlockStaticPorts(ports ...string) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remotePort := util.GetPort(req.RemoteAddr)
 			for _, port := range ports {
 				if remotePort == port {
@@ -94,7 +101,8 @@ func BlockStaticPorts(ports ...string) Set {
 
 func AllowDynamicPorts(checker func(remotePort string) bool) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remotePort := util.GetPort(req.RemoteAddr)
 			if checker(remotePort) {
 				return req, http.StatusOK
@@ -107,7 +115,8 @@ func AllowDynamicPorts(checker func(remotePort string) bool) Set {
 
 func BlockDynamicPorts(checker func(remotePort string) bool) Set {
 	return Set{
-		Request: func(req *http.Request) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+			req := ctx.Request
 			remotePort := util.GetPort(req.RemoteAddr)
 			if checker(remotePort) {
 				return req, http.StatusForbidden

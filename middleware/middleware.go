@@ -8,7 +8,7 @@ import (
 )
 
 type Set struct {
-	Request  func(*http.Request) (*http.Request, int)
+	Request  func(*context.LuxContext) (*http.Request, int)
 	Response func(*context.LuxContext) (*context.LuxContext, error)
 }
 
@@ -17,7 +17,7 @@ func ApplyRequests(ctx *context.LuxContext, middlewares []Set) string {
 		if m.Request == nil {
 			continue
 		}
-		_, code := m.Request(ctx.Request)
+		_, code := m.Request(ctx)
 		if 400 <= code && code < 600 {
 			ctx.Response.WriteHeader(code)
 			return fmt.Sprintf("Middleware Request Reading %s: %s from %s", ctx.Request.URL.Path, http.StatusText(code), ctx.Request.RemoteAddr)
