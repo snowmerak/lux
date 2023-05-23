@@ -35,24 +35,19 @@ func (r *RouterGroup) AddRouter(method, path string, handler handler.Handler, sw
 		}
 		r.Swagger.Paths[swagger.Path(p)][swagger.Method(m)] = *swaggerRouter
 	}
-	router := &Router{
-		Handler:     handler,
-		Middlewares: middlewares,
-		logger:      r.Logger,
-	}
 	handler = func(ctx *context.LuxContext) error {
 		if rs := middleware.ApplyRequests(ctx, r.Middlewares); rs != "" {
 			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router group middleware error")
 			return nil
 		}
-		if rs := middleware.ApplyRequests(ctx, router.Middlewares); rs != "" {
+		if rs := middleware.ApplyRequests(ctx, middlewares); rs != "" {
 			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router middleware error")
 			return nil
 		}
 		if err := handler(ctx); err != nil {
 			return err
 		}
-		if rs := middleware.ApplyResponses(ctx, router.Middlewares); rs != "" {
+		if rs := middleware.ApplyResponses(ctx, middlewares); rs != "" {
 			r.Logger.Error().Str("method", ctx.Request.Method).Str("path", ctx.Request.URL.Path).Str("remote", ctx.Request.RemoteAddr).Str("err", rs).Msg("Router middleware error")
 			return nil
 		}
@@ -61,6 +56,11 @@ func (r *RouterGroup) AddRouter(method, path string, handler handler.Handler, sw
 			return nil
 		}
 		return nil
+	}
+	router := &Router{
+		Handler:     handler,
+		Middlewares: middlewares,
+		logger:      r.Logger,
 	}
 	if _, ok := r.Routers[r.Path+path]; !ok {
 		r.Routers[r.Path+path] = map[string]*Router{}
