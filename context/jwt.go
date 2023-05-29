@@ -48,10 +48,10 @@ func (l *LuxContext) JWT() *JWT {
 	return j
 }
 
-func (j *JWT) SetRefreshTokenWithClaims(claims jwt.Claims) error {
+func (j *JWT) SetRefreshTokenWithClaims(claims jwt.Claims) (string, error) {
 	value, err := j.MakeRefreshToken(claims)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	ck := new(http.Cookie)
@@ -64,9 +64,11 @@ func (j *JWT) SetRefreshTokenWithClaims(claims jwt.Claims) error {
 
 	ck.Value = value
 
-	j.response.Header().Add("Set-Cookie", ck.String())
+	refreshTokenValue := ck.String()
 
-	return nil
+	j.response.Header().Add("Set-Cookie", refreshTokenValue)
+
+	return refreshTokenValue, nil
 }
 
 func (j *JWT) MakeRefreshToken(claims jwt.Claims) (string, error) {
@@ -122,15 +124,15 @@ func (j *JWT) ParseRefreshToken(token []byte) (jwt.Claims, error) {
 	return tk.Claims, nil
 }
 
-func (j *JWT) SetAccessToken(claims jwt.Claims) error {
+func (j *JWT) SetAccessToken(claims jwt.Claims) (string, error) {
 	value, err := j.MakeAccessToken(claims)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	j.response.Header().Add("Authorization", "Bearer "+value)
 
-	return nil
+	return value, nil
 }
 
 func (j *JWT) MakeAccessToken(claims jwt.Claims) (string, error) {
