@@ -9,7 +9,7 @@ type AuthChecker func(lc *context.LuxContext, authorizationHeader string, tokenC
 
 func Auth(authChecker AuthChecker, tokenName ...string) Set {
 	return Set{
-		Request: func(ctx *context.LuxContext) (*http.Request, int) {
+		Request: func(ctx *context.LuxContext) (*context.LuxContext, int) {
 			req := ctx.Request
 			authorizationHeader := req.Header.Get("Authorization")
 			cookies := []*http.Cookie(nil)
@@ -20,9 +20,9 @@ func Auth(authChecker AuthChecker, tokenName ...string) Set {
 				}
 			}
 			if authChecker(ctx, authorizationHeader, cookies...) {
-				return req, http.StatusOK
+				return ctx, http.StatusOK
 			}
-			return req, http.StatusUnauthorized
+			return ctx, http.StatusUnauthorized
 		},
 		Response: nil,
 	}

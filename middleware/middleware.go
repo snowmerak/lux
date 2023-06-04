@@ -8,7 +8,7 @@ import (
 )
 
 type Set struct {
-	Request  func(*context.LuxContext) (*http.Request, int)
+	Request  func(*context.LuxContext) (*context.LuxContext, int)
 	Response func(*context.LuxContext) (*context.LuxContext, error)
 }
 
