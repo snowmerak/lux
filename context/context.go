@@ -3,6 +3,7 @@ package context
 import (
 	"context"
 	"github.com/rs/zerolog"
+	"github.com/snowmerak/lux/bean"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -44,6 +45,7 @@ type LuxContext struct {
 	Context      context.Context
 	Logger       *zerolog.Logger
 	JWTConfig    *JWTConfig
+	Container    *bean.Container
 }
 
 func (l *LuxContext) IsOk() bool {

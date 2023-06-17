@@ -3,6 +3,7 @@ package handler
 import (
 	ctx "context"
 	"github.com/rs/zerolog"
+	"github.com/snowmerak/lux/bean"
 	"net/http"
 
 	"github.com/gobwas/ws"
@@ -12,13 +13,14 @@ import (
 
 type Handler func(*context.LuxContext) error
 
-func Wrap(ctx ctx.Context, logger *zerolog.Logger, jwtCfg *context.JWTConfig, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func Wrap(ctx ctx.Context, logger *zerolog.Logger, jwtCfg *context.JWTConfig, container *bean.Container, handler Handler) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		luxCtx := new(context.LuxContext)
 		luxCtx.Context = ctx
 		luxCtx.Request = r
 		luxCtx.Logger = logger
 		luxCtx.JWTConfig = jwtCfg
+		luxCtx.Container = container
 		ok := false
 		luxCtx.Response, ok = w.(*context.Response)
 		if !ok {

@@ -4,6 +4,7 @@ import (
 	ctx "context"
 	"encoding/json"
 	"github.com/rs/zerolog"
+	"github.com/snowmerak/lux/bean"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ type Lux struct {
 	swagger     *swagger.Swagger
 	session     *session.Local
 	jwtConfig   *context.JWTConfig
+	container   *bean.Container
 	ctx         ctx.Context
 }
 
@@ -48,6 +50,7 @@ func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middl
 		builtRouter: httprouter.New(),
 		swagger:     swg,
 		session:     localSession,
+		container:   bean.NewContainer(),
 	}
 }
 
@@ -115,6 +118,7 @@ func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	luxCtx.Response = context.NewResponse()
 	luxCtx.JWTConfig = l.jwtConfig
 	luxCtx.Logger = l.logger
+	luxCtx.Container = l.container
 	defer func() {
 		for key, values := range luxCtx.Response.Headers {
 			for _, value := range values {
@@ -145,7 +149,7 @@ func (l *Lux) buildServer(ctx ctx.Context, addr string) {
 	for _, routerGroup := range l.routers {
 		for path, routerMap := range routerGroup.Routers {
 			for method, router := range routerMap {
-				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, l.jwtConfig, router.Handler))
+				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, l.jwtConfig, l.container, router.Handler))
 			}
 		}
 	}
