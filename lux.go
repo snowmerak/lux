@@ -54,6 +54,10 @@ func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middl
 	}
 }
 
+func (l *Lux) Container() *bean.Container {
+	return l.container
+}
+
 func (l *Lux) SetLogger(logger *zerolog.Logger) {
 	l.logger = logger
 }
