@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const RefreshToken = "refresh-token"
+const refreshTokenName = "refresh-token"
 
 type JWTConfig struct {
 	SigningKey       []byte
@@ -55,7 +55,7 @@ func (j *JWT) SetRefreshTokenWithClaims(claims jwt.Claims) (string, error) {
 	}
 
 	ck := new(http.Cookie)
-	ck.Name = RefreshToken
+	ck.Name = refreshTokenName
 	ck.Domain = j.domain
 	ck.Path = j.path
 	ck.HttpOnly = true
@@ -91,7 +91,7 @@ func (j *JWT) MakeRefreshToken(claims jwt.Claims) (string, error) {
 var errInvalidToken = errors.New("invalid token error")
 
 func (j *JWT) GetRefreshTokenFromCookie() (jwt.Claims, error) {
-	ck, err := j.request.Cookie(RefreshToken)
+	ck, err := j.request.Cookie(refreshTokenName)
 	if err != nil {
 		return nil, err
 	}
