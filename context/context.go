@@ -2,12 +2,11 @@ package context
 
 import (
 	"context"
-	"github.com/rs/zerolog"
-	"github.com/snowmerak/lux/bean"
 	"net/http"
 
+	"github.com/rs/zerolog"
+
 	"github.com/julienschmidt/httprouter"
-	"github.com/snowmerak/lux/session"
 )
 
 type Response struct {
@@ -38,14 +37,13 @@ func (r *Response) Write(p []byte) (int, error) {
 }
 
 type LuxContext struct {
-	Request      *http.Request
-	Response     *Response
-	RouteParams  httprouter.Params
-	LocalSession *session.Local
-	Context      context.Context
-	Logger       *zerolog.Logger
-	JWTConfig    *JWTConfig
-	Container    *bean.Container
+	Request        *http.Request
+	Response       *Response
+	RouteParams    httprouter.Params
+	Context        context.Context
+	RequestContext context.Context
+	Logger         *zerolog.Logger
+	JWTConfig      *JWTConfig
 }
 
 func (l *LuxContext) IsOk() bool {

@@ -3,12 +3,12 @@ package lux
 import (
 	ctx "context"
 	"encoding/json"
-	"github.com/rs/zerolog"
-	"github.com/snowmerak/lux/bean"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/rs/zerolog"
 
 	"github.com/caddyserver/certmagic"
 	"github.com/julienschmidt/httprouter"
@@ -16,7 +16,6 @@ import (
 	"github.com/snowmerak/lux/handler"
 	"github.com/snowmerak/lux/middleware"
 	"github.com/snowmerak/lux/router"
-	"github.com/snowmerak/lux/session"
 	"github.com/snowmerak/lux/swagger"
 	"golang.org/x/net/http2"
 )
@@ -28,9 +27,7 @@ type Lux struct {
 	middlewares []middleware.Set
 	builtRouter *httprouter.Router
 	swagger     *swagger.Swagger
-	session     *session.Local
 	jwtConfig   *context.JWTConfig
-	container   *bean.Container
 	ctx         ctx.Context
 }
 
@@ -40,8 +37,6 @@ func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middl
 		swg.Info = *swaggerInfo
 	}
 	swg.SwaggerVersion = "2.0"
-	localSession := session.NewLocal()
-	session.StartGC(localSession)
 	return &Lux{
 		routers:     []*router.RouterGroup{},
 		logger:      logger,
@@ -49,13 +44,7 @@ func New(swaggerInfo *swagger.Info, logger *zerolog.Logger, middlewares ...middl
 		middlewares: middlewares,
 		builtRouter: httprouter.New(),
 		swagger:     swg,
-		session:     localSession,
-		container:   bean.NewContainer(),
 	}
-}
-
-func (l *Lux) Container() *bean.Container {
-	return l.container
 }
 
 func (l *Lux) SetLogger(logger *zerolog.Logger) {
@@ -117,12 +106,12 @@ func (l *Lux) ShowSwagger(path string, middlewares ...middleware.Set) {
 
 func (l *Lux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	luxCtx := new(context.LuxContext)
-	luxCtx.LocalSession = l.session
 	luxCtx.Request = r
 	luxCtx.Response = context.NewResponse()
 	luxCtx.JWTConfig = l.jwtConfig
 	luxCtx.Logger = l.logger
-	luxCtx.Container = l.container
+	luxCtx.Context = l.ctx
+	luxCtx.RequestContext = r.Context()
 	defer func() {
 		for key, values := range luxCtx.Response.Headers {
 			for _, value := range values {
@@ -153,7 +142,7 @@ func (l *Lux) buildServer(ctx ctx.Context, addr string) {
 	for _, routerGroup := range l.routers {
 		for path, routerMap := range routerGroup.Routers {
 			for method, router := range routerMap {
-				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, l.jwtConfig, l.container, router.Handler))
+				l.builtRouter.Handle(method, path, handler.Wrap(ctx, l.logger, l.jwtConfig, router.Handler))
 			}
 		}
 	}
