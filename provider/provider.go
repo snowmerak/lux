@@ -33,7 +33,7 @@ func (p *Provider) Register(constructFunction ...any) error {
 }
 
 func (p *Provider) register(constructFunction any) error {
-	args, _, err := analyzeConstructor(constructFunction)
+	args, _, err := analyzeFunction(constructFunction)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func Run[T any](provider *Provider, function any) (r T, err error) {
 	provider.lock.RLock()
 	defer provider.lock.RUnlock()
 
-	args, rets, err := analyzeConstructor(function)
+	args, rets, err := analyzeFunction(function)
 	if err != nil {
 		return r, err
 	}
@@ -96,7 +96,7 @@ func JustRun(provider *Provider, function any) error {
 	provider.lock.RLock()
 	defer provider.lock.RUnlock()
 
-	args, rets, err := analyzeConstructor(function)
+	args, rets, err := analyzeFunction(function)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func Update(provider *Provider, function any) error {
 	provider.lock.Lock()
 	defer provider.lock.Unlock()
 
-	args, _, err := analyzeConstructor(function)
+	args, _, err := analyzeFunction(function)
 	if err != nil {
 		return err
 	}

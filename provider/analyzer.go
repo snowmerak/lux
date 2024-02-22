@@ -8,7 +8,7 @@ func (e ErrNotAFunction) Error() string {
 	return "not a function"
 }
 
-func analyzeConstructor(constructFunction any) ([]reflect.Type, []reflect.Type, error) {
+func analyzeFunction(constructFunction any) ([]reflect.Type, []reflect.Type, error) {
 	if reflect.TypeOf(constructFunction).Kind() != reflect.Func {
 		return nil, nil, ErrNotAFunction{}
 	}
@@ -27,4 +27,8 @@ func analyzeConstructor(constructFunction any) ([]reflect.Type, []reflect.Type, 
 	}
 
 	return args, returns, nil
+}
+
+func analyzeMethod(constructMethod any) ([]reflect.Type, []reflect.Type, error) {
+	return analyzeFunction(constructMethod)
 }
