@@ -10,8 +10,8 @@ tasks:
 
   build:
     desc: Index and Build the Lux binary
-    deps: [index]
     cmds:
+      - task: index
       - go build -o lux.exe ./cmd/lux
 
   install:
