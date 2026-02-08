@@ -70,6 +70,12 @@ These are the non-negotiable rules of this architecture. They must be strictly f
     1.  **Add the tool to `go.mod`**: Run `go get -tool buf.build/buf/cmd/buf` to add it as a tool dependency.
     2.  **Usage**: Run `go tool buf generate` to execute the version defined in your `go.mod`.
 
+#### Taskfile Automation
+
+*   **Standard Tool**: [Task](https://taskfile.dev/) (using `Taskfile.yml`) is the mandatory automation tool for building, testing, and indexing.
+*   **Documentation**: Detailed task definitions and templates are available in [knowledge/taskfile.md](knowledge/taskfile.md).
+*   **Consistency**: All project-wide commands should be registered as tasks to ensure consistency across environments.
+
 ### Code Style & Conventions
 
 #### Error Handling Practices
