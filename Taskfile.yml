@@ -19,3 +19,5 @@ tasks:
     cmds:
       - go mod tidy
       - go mod download
+      - task: index
+      - go install ./cmd/lux/.
