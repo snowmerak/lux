@@ -2,10 +2,18 @@ package knowledge
 
 import (
 	"context"
-	"sort"
+	"embed"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"sync"
+
+	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/search/query"
 )
 
-// Item은 바이너리에 내장될 지식 조각입니다.
+// Item은 지식의 단위입니다.
 type Item struct {
 	ID      string   `json:"id"`
 	Title   string   `json:"title"`
@@ -13,60 +21,152 @@ type Item struct {
 	Tags    []string `json:"tags"`
 }
 
-// Data는 사용자가 직접 채워넣을 내장 지식 창고입니다.
-var Data = []Item{
-	// 예시 데이터: 사용자가 여기에 지식을 채워넣게 됩니다.
-	{ID: "1", Title: "Lux Framework Overview", Content: "Lux is an AI-native framework...", Tags: []string{"lux", "overview", "go"}},
+//go:embed data.bleve/*
+var embeddedIndex embed.FS
+
+var (
+	index     bleve.Index
+	indexOnce sync.Once
+)
+
+// initIndex는 임베딩된 인덱스를 임시 디렉토리에 풀어서 Bleve로 엽니다.
+func initIndex() error {
+	var err error
+	indexOnce.Do(func() {
+		tmpDir, tErr := os.MkdirTemp("", "lux-index-*")
+		if tErr != nil {
+			err = tErr
+			return
+		}
+
+		// 임베딩된 파일들을 임시 디렉토리로 복사
+		err = copyEmbedToDisk(embeddedIndex, "data.bleve", tmpDir)
+		if err != nil {
+			return
+		}
+
+		index, err = bleve.Open(filepath.Join(tmpDir, "data.bleve"))
+	})
+	return err
 }
 
-// SearchResult는 검색 결과와 매칭된 태그 개수를 담습니다.
+func copyEmbedToDisk(fs embed.FS, srcDir, dstDir string) error {
+	entries, err := fs.ReadDir(srcDir)
+	if err != nil {
+		return err
+	}
+
+	outDir := filepath.Join(dstDir, srcDir)
+	if err := os.MkdirAll(outDir, 0755); err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(srcDir, entry.Name())
+		dstPath := filepath.Join(outDir, entry.Name())
+
+		if entry.IsDir() {
+			if err := copyEmbedToDisk(fs, srcPath, dstDir); err != nil {
+				return err
+			}
+			continue
+		}
+
+		srcFile, err := fs.Open(srcPath)
+		if err != nil {
+			return err
+		}
+		defer srcFile.Close()
+
+		dstFile, err := os.Create(dstPath)
+		if err != nil {
+			return err
+		}
+		defer dstFile.Close()
+
+		if _, err := io.Copy(dstFile, srcFile); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SearchKnowledge는 Bleve를 사용하여 태그 및 내용을 검색합니다.
+func SearchKnowledge(ctx context.Context, tags []string) ([]SearchResult, error) {
+	if err := initIndex(); err != nil {
+		return nil, err
+	}
+
+	// 태그들을 OR 쿼리로 결합
+	var queries []query.Query
+	for _, t := range tags {
+		queries = append(queries, bleve.NewTermQuery(t))
+	}
+
+	q := bleve.NewDisjunctionQuery(queries...)
+	searchRequest := bleve.NewSearchRequest(q)
+	searchRequest.Size = 10
+	searchRequest.Fields = []string{"Title"} // 타이틀만 먼저 필요
+
+	searchResult, err := index.Search(searchRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []SearchResult
+	for _, hit := range searchResult.Hits {
+		title := ""
+		if t, ok := hit.Fields["Title"]; ok {
+			title = fmt.Sprintf("%v", t)
+		}
+		results = append(results, SearchResult{
+			Item: Item{
+				ID:    hit.ID,
+				Title: title,
+			},
+			MatchCount: int(hit.Score),
+		})
+	}
+
+	return results, nil
+}
+
+// SearchResult는 검색 결과를 담습니다.
 type SearchResult struct {
 	Item       Item
 	MatchCount int
 }
 
-// SearchKnowledge는 태그 매칭 개수가 많은 순서대로 10개의 지식 타이틀을 반환합니다.
-func SearchKnowledge(ctx context.Context, tags []string) []SearchResult {
-	var results []SearchResult
-
-	for _, item := range Data {
-		matchCount := 0
-		for _, t := range tags {
-			for _, it := range item.Tags {
-				if t == it {
-					matchCount++
-					break
-				}
-			}
-		}
-
-		if matchCount > 0 {
-			results = append(results, SearchResult{
-				Item:       item,
-				MatchCount: matchCount,
-			})
-		}
-	}
-
-	// 매칭 개수 내림차순 정렬
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].MatchCount > results[j].MatchCount
-	})
-
-	// 최대 10개 제한
-	if len(results) > 10 {
-		results = results[:10]
-	}
-
-	return results
-}
-
 // GetContentByID는 ID를 통해 지식의 상세 내용을 가져옵니다.
 func GetContentByID(ctx context.Context, id string) (Item, bool) {
-	for _, item := range Data {
-		if item.ID == id {
-			return item, true
-		}
+	if err := initIndex(); err != nil {
+		return Item{}, false
 	}
-	return Item{}, false
+
+	// 모든 필드를 가져오기 위해 검색 요청
+	q := bleve.NewDocIDQuery([]string{id})
+	searchRequest := bleve.NewSearchRequest(q)
+	searchRequest.Fields = []string{"Title", "Content", "Tags"}
+
+	results, err := index.Search(searchRequest)
+	if err != nil || results.Total == 0 {
+		return Item{}, false
+	}
+
+	hit := results.Hits[0]
+	item := Item{
+		ID:      hit.ID,
+		Title:   fmt.Sprintf("%v", hit.Fields["Title"]),
+		Content: fmt.Sprintf("%v", hit.Fields["Content"]),
+	}
+
+	if tags, ok := hit.Fields["Tags"].([]any); ok {
+		for _, t := range tags {
+			item.Tags = append(item.Tags, fmt.Sprintf("%v", t))
+		}
+	} else if tag, ok := hit.Fields["Tags"].(string); ok {
+		item.Tags = append(item.Tags, tag)
+	}
+
+	return item, true
 }

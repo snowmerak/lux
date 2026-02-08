@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  index:
+    desc: Build the knowledge index from Markdown files
+    cmds:
+      - go run cmd/indexer/main.go
+
+  build:
+    desc: Index and Build the Lux binary
+    deps: [index]
+    cmds:
+      - go build -o lux.exe ./cmd/lux
+
+  install:
+    desc: Install project dependencies
+    cmds:
+      - go mod tidy
+      - go mod download

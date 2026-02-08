@@ -35,14 +35,24 @@ func SearchKnowledgeTool(ctx context.Context, req *mcp.CallToolRequest, input Se
 	SearchOutput,
 	error,
 ) {
-	results := knowledge.SearchKnowledge(ctx, input.Tags)
+	results, err := knowledge.SearchKnowledge(ctx, input.Tags)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				&mcp.TextContent{
+					Text: fmt.Sprintf("Search failed: %s", err),
+				},
+			},
+		}, SearchOutput{}, nil
+	}
 
 	output := SearchOutput{
 		Results: make([]string, 0, len(results)),
 	}
 
 	for _, res := range results {
-		output.Results = append(output.Results, fmt.Sprintf("[%s] %s (Matches: %d)", res.Item.ID, res.Item.Title, res.MatchCount))
+		output.Results = append(output.Results, fmt.Sprintf("[%s] %s (Score: %d)", res.Item.ID, res.Item.Title, res.MatchCount))
 	}
 
 	return nil, output, nil
