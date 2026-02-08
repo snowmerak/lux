@@ -30,15 +30,15 @@ func main() {
 
 	titleMapping := bleve.NewTextFieldMapping()
 	titleMapping.Store = true
-	itemMapping.AddFieldMappingsAt("title", titleMapping)
+	itemMapping.AddFieldMappingsAt("Title", titleMapping)
 
 	contentMapping := bleve.NewTextFieldMapping()
 	contentMapping.Store = true
-	itemMapping.AddFieldMappingsAt("content", contentMapping)
+	itemMapping.AddFieldMappingsAt("Content", contentMapping)
 
 	tagMapping := bleve.NewTextFieldMapping()
 	tagMapping.Store = true
-	itemMapping.AddFieldMappingsAt("tags", tagMapping)
+	itemMapping.AddFieldMappingsAt("Tags", tagMapping)
 
 	mapping.AddDocumentMapping("_default", itemMapping)
 

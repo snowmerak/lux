@@ -16,10 +16,10 @@ import (
 
 // Item은 지식의 단위입니다.
 type Item struct {
-	ID      string   `json:"id"`
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
-	Tags    []string `json:"tags"`
+	ID      string   `json:"ID"`
+	Title   string   `json:"Title"`
+	Content string   `json:"Content"`
+	Tags    []string `json:"Tags"`
 }
 
 //go:embed data.bleve
@@ -98,19 +98,19 @@ func SearchKnowledge(ctx context.Context, tags []string) ([]SearchResult, error)
 		return nil, err
 	}
 
-	// 태그들을 OR 쿼리로 결합 (tags와 title 필드 모두 검색)
+	// 태그들을 OR 쿼리로 결합 (Tags와 Title 필드 모두 검색)
 	var queries []query.Query
 	for _, t := range tags {
 		tq := bleve.NewMatchQuery(t)
-		tq.SetField("tags")
+		tq.SetField("Tags")
 		queries = append(queries, tq)
 
 		titleQ := bleve.NewMatchQuery(t)
-		titleQ.SetField("title")
+		titleQ.SetField("Title")
 		queries = append(queries, titleQ)
 
 		contentQ := bleve.NewMatchQuery(t)
-		contentQ.SetField("content")
+		contentQ.SetField("Content")
 		queries = append(queries, contentQ)
 	}
 
@@ -121,7 +121,7 @@ func SearchKnowledge(ctx context.Context, tags []string) ([]SearchResult, error)
 	q := bleve.NewDisjunctionQuery(queries...)
 	searchRequest := bleve.NewSearchRequest(q)
 	searchRequest.Size = 10
-	searchRequest.Fields = []string{"title"} // 소문자로 통일
+	searchRequest.Fields = []string{"Title"} // 대문자로 통일
 
 	searchResult, err := index.Search(searchRequest)
 	if err != nil {
@@ -130,13 +130,13 @@ func SearchKnowledge(ctx context.Context, tags []string) ([]SearchResult, error)
 
 	results := make([]SearchResult, 0, len(searchResult.Hits))
 	for _, hit := range searchResult.Hits {
-		title := getStringField(hit.Fields, "title")
+		title := getStringField(hit.Fields, "Title")
 		results = append(results, SearchResult{
 			Item: Item{
 				ID:    hit.ID,
 				Title: title,
 			},
-			MatchCount: int(hit.Score),
+			Score: hit.Score,
 		})
 	}
 
@@ -145,8 +145,8 @@ func SearchKnowledge(ctx context.Context, tags []string) ([]SearchResult, error)
 
 // SearchResult는 검색 결과를 담습니다.
 type SearchResult struct {
-	Item       Item
-	MatchCount int
+	Item  Item
+	Score float64
 }
 
 // GetContentByID는 ID를 통해 지식의 상세 내용을 가져옵니다.
@@ -168,9 +168,9 @@ func GetContentByID(ctx context.Context, id string) (Item, bool) {
 	hit := results.Hits[0]
 	item := Item{
 		ID:      hit.ID,
-		Title:   getStringField(hit.Fields, "title"),
-		Content: getStringField(hit.Fields, "content"),
-		Tags:    getStringSliceField(hit.Fields, "tags"),
+		Title:   getStringField(hit.Fields, "Title"),
+		Content: getStringField(hit.Fields, "Content"),
+		Tags:    getStringSliceField(hit.Fields, "Tags"),
 	}
 
 	return item, true

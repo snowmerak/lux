@@ -54,7 +54,7 @@ func SearchKnowledgeTool(ctx context.Context, req *mcp.CallToolRequest, input Se
 	}
 
 	for _, res := range results {
-		output.Results = append(output.Results, fmt.Sprintf("[%s] %s (Score: %d)", res.Item.ID, res.Item.Title, res.MatchCount))
+		output.Results = append(output.Results, fmt.Sprintf("[%s] %s (Score: %.2f)", res.Item.ID, res.Item.Title, res.Score))
 	}
 
 	return nil, output, nil
