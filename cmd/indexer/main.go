@@ -24,6 +24,24 @@ func main() {
 
 	// Create a new Bleve mapping
 	mapping := bleve.NewIndexMapping()
+
+	// 필드들이 검색 결과에 포함되도록 명시적 매핑 설정
+	itemMapping := bleve.NewDocumentMapping()
+
+	titleMapping := bleve.NewTextFieldMapping()
+	titleMapping.Store = true
+	itemMapping.AddFieldMappingsAt("title", titleMapping)
+
+	contentMapping := bleve.NewTextFieldMapping()
+	contentMapping.Store = true
+	itemMapping.AddFieldMappingsAt("content", contentMapping)
+
+	tagMapping := bleve.NewTextFieldMapping()
+	tagMapping.Store = true
+	itemMapping.AddFieldMappingsAt("tags", tagMapping)
+
+	mapping.AddDocumentMapping("_default", itemMapping)
+
 	index, err := bleve.New(indexPath, mapping)
 	if err != nil {
 		log.Fatal(err)

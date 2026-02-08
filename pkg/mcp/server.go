@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/snowmerak/lux/v4/pkg/knowledge"
@@ -36,6 +37,7 @@ func SearchKnowledgeTool(ctx context.Context, req *mcp.CallToolRequest, input Se
 	error,
 ) {
 	results, err := knowledge.SearchKnowledge(ctx, input.Tags)
+	log.Printf("Search for tags %v found %d results", input.Tags, len(results))
 	if err != nil {
 		return &mcp.CallToolResult{
 			IsError: true,
@@ -48,7 +50,7 @@ func SearchKnowledgeTool(ctx context.Context, req *mcp.CallToolRequest, input Se
 	}
 
 	output := SearchOutput{
-		Results: make([]string, 0, len(results)),
+		Results: []string{},
 	}
 
 	for _, res := range results {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"sync"
 
@@ -62,7 +63,7 @@ func copyEmbedToDisk(fs embed.FS, srcDir, dstDir string) error {
 	}
 
 	for _, entry := range entries {
-		srcPath := filepath.Join(srcDir, entry.Name())
+		srcPath := path.Join(srcDir, entry.Name())
 		dstPath := filepath.Join(outDir, entry.Name())
 
 		if entry.IsDir() {
@@ -97,28 +98,39 @@ func SearchKnowledge(ctx context.Context, tags []string) ([]SearchResult, error)
 		return nil, err
 	}
 
-	// 태그들을 OR 쿼리로 결합
+	// 태그들을 OR 쿼리로 결합 (tags와 title 필드 모두 검색)
 	var queries []query.Query
 	for _, t := range tags {
-		queries = append(queries, bleve.NewTermQuery(t))
+		tq := bleve.NewMatchQuery(t)
+		tq.SetField("tags")
+		queries = append(queries, tq)
+
+		titleQ := bleve.NewMatchQuery(t)
+		titleQ.SetField("title")
+		queries = append(queries, titleQ)
+
+		contentQ := bleve.NewMatchQuery(t)
+		contentQ.SetField("content")
+		queries = append(queries, contentQ)
+	}
+
+	if len(queries) == 0 {
+		return make([]SearchResult, 0), nil
 	}
 
 	q := bleve.NewDisjunctionQuery(queries...)
 	searchRequest := bleve.NewSearchRequest(q)
 	searchRequest.Size = 10
-	searchRequest.Fields = []string{"Title"} // 타이틀만 먼저 필요
+	searchRequest.Fields = []string{"title"} // 소문자로 통일
 
 	searchResult, err := index.Search(searchRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	var results []SearchResult
+	results := make([]SearchResult, 0, len(searchResult.Hits))
 	for _, hit := range searchResult.Hits {
-		title := ""
-		if t, ok := hit.Fields["Title"]; ok {
-			title = fmt.Sprintf("%v", t)
-		}
+		title := getStringField(hit.Fields, "title")
 		results = append(results, SearchResult{
 			Item: Item{
 				ID:    hit.ID,
@@ -156,17 +168,39 @@ func GetContentByID(ctx context.Context, id string) (Item, bool) {
 	hit := results.Hits[0]
 	item := Item{
 		ID:      hit.ID,
-		Title:   fmt.Sprintf("%v", hit.Fields["Title"]),
-		Content: fmt.Sprintf("%v", hit.Fields["Content"]),
-	}
-
-	if tags, ok := hit.Fields["Tags"].([]any); ok {
-		for _, t := range tags {
-			item.Tags = append(item.Tags, fmt.Sprintf("%v", t))
-		}
-	} else if tag, ok := hit.Fields["Tags"].(string); ok {
-		item.Tags = append(item.Tags, tag)
+		Title:   getStringField(hit.Fields, "title"),
+		Content: getStringField(hit.Fields, "content"),
+		Tags:    getStringSliceField(hit.Fields, "tags"),
 	}
 
 	return item, true
+}
+
+func getStringField(fields map[string]any, name string) string {
+	if val, ok := fields[name]; ok {
+		return fmt.Sprintf("%v", val)
+	}
+	return ""
+}
+
+func getStringSliceField(fields map[string]any, name string) []string {
+	val, ok := fields[name]
+	if !ok {
+		return nil
+	}
+
+	switch v := val.(type) {
+	case []any:
+		var res []string
+		for _, item := range v {
+			res = append(res, fmt.Sprintf("%v", item))
+		}
+		return res
+	case []string:
+		return v
+	case string:
+		return []string{v}
+	default:
+		return []string{fmt.Sprintf("%v", v)}
+	}
 }
