@@ -73,8 +73,8 @@ These are the non-negotiable rules of this architecture. They must be strictly f
 #### Taskfile Automation
 
 *   **Standard Tool**: [Task](https://taskfile.dev/) (using `Taskfile.yml`) is the mandatory automation tool for building, testing, and indexing.
+*   **Tool Dependency Management**: Run `go get -tool github.com/go-task/task/v3/cmd/task@latest` and use `go tool task` for execution.
 *   **Documentation**: Detailed task definitions and templates are available in [knowledge/taskfile.md](knowledge/taskfile.md).
-*   **Consistency**: All project-wide commands should be registered as tasks to ensure consistency across environments.
 
 ### Code Style & Conventions
 

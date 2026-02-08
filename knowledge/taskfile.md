@@ -4,8 +4,11 @@ This guide defines the standard for automating project workflows (build, test, i
 
 ### Core Principles
 
-1.  **Atomicity**: Each task should perform a single, logical unit of work.
-2.  **Dependency Management**: Use `deps` or `cmds` with `task:` to chain related operations (e.g., `build` should depend on `index`).
+1.  **Tool Dependency Management (Go 1.24+)**: It is mandatory to manage `task` as a versioned tool dependency.
+    - **Installation**: Run `go get -tool github.com/go-task/task/v3/cmd/task@latest`.
+    - **Usage**: Use `go tool task` to execute the local version defined in `go.mod`.
+2.  **Atomicity**: Each task should perform a single, logical unit of work.
+3.  **Dependency Management**: Use `deps` or `cmds` with `task:` to chain related operations (e.g., `build` should depend on `index`).
 3.  **Descriptive**: Every task **must** have a `desc` field for discoverability (`task --list`).
 4.  **Environment Agnostic**: Use environment variables for paths and configurations where possible.
 
