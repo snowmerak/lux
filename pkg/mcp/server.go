@@ -104,5 +104,10 @@ func NewServer() *mcp.Server {
 		Description: "Get the full content and tags of a knowledge item by its ID.",
 	}, GetKnowledgeContentTool)
 
+	mcp.AddTool(s, &mcp.Tool{
+		Name:        "get_godoc",
+		Description: "Retrieve Go documentation for a specific package, type, or function using 'go doc -all'.",
+	}, GetGoDocTool)
+
 	return s
 }

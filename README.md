@@ -25,6 +25,7 @@ Lux is a tool for managing a knowledge repository (.md files) and providing it t
 - **Knowledge Search (Tools)**:
   - `search_knowledge`: Searches for a list of knowledge items based on tag matching.
   - `get_knowledge_content`: Retrieves the detailed content of a specific knowledge item by its ID.
+  - `get_godoc`: Retrieves Go documentation for a specific package, type, or function using `go doc`.
 - **Embedded Index**: The generated search index is embedded into the binary for easy distribution and deployment.
 
 ## Getting Started
