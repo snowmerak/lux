@@ -19,6 +19,8 @@ func main() {
 	if _, err := os.Stat(indexPath); err == nil {
 		os.RemoveAll(indexPath)
 	}
+	os.MkdirAll(indexPath, 0755)
+	os.WriteFile(filepath.Join(indexPath, "placeholder.txt"), []byte("placehold"), 0644)
 
 	// Create a new Bleve mapping
 	mapping := bleve.NewIndexMapping()

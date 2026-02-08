@@ -21,7 +21,7 @@ type Item struct {
 	Tags    []string `json:"tags"`
 }
 
-//go:embed data.bleve/*
+//go:embed data.bleve
 var embeddedIndex embed.FS
 
 var (
