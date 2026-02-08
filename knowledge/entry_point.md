@@ -5,8 +5,9 @@ This guide provides a blueprint for generating the `main` package for a Go appli
 ### Core Principles
 
 1.  **Single Responsibility**: The `cmd` layer's **only** responsibility is to "wire" the application together. It connects concrete implementations from the `pkg` directory to the interfaces defined in `lib` and injects them into the business logic layers (`internal/service`, `internal/controller`). It should contain no business logic.
-2.  **Fx as the Foundation**: `fx.App` is the heart of the application. The `main` function should be minimal, typically only containing the `fx.New(...).Run()` call. Fx handles the complexity of initializing components in the correct order and managing their lifecycles.
-3.  **Modularity with `fx.Module`**: Every logical unit of the application (e.g., a database client, a repository, a service, a controller) **must** be provided as a separate `fx.Module`. This makes the dependency graph explicit, prevents circular dependencies, and allows for easy replacement of implementations.
+2.  **Explicit Configuration**: All modules **must** load their configuration from environment variables. Default values in the code should be avoided for critical infrastructure dependencies. If a required environment variable is missing, the application should fail to start.
+3.  **Fx as the Foundation**: `fx.App` is the heart of the application. The `main` function should be minimal, typically only containing the `fx.New(...).Run()` call. Fx handles the complexity of initializing components in the correct order and managing their lifecycles.
+4.  **Modularity with `fx.Module`**: Every logical unit of the application (e.g., a database client, a repository, a service, a controller) **must** be provided as a separate `fx.Module`. This makes the dependency graph explicit, prevents circular dependencies, and allows for easy replacement of implementations.
 
 ### Generation Prompt for LLM
 
@@ -33,6 +34,8 @@ package postgres
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"go.uber.org/fx"
 	"your/project/lib/repository/user" // Import the LIB interface
@@ -55,13 +58,17 @@ var Module = fx.Module("postgres",
 
 // Config holds the configuration for this specific module.
 type Config struct {
-	// Configuration fields go here (e.g., DSN, PoolSize)
+	Port string
 }
 
 // ConfigRegister provides the config constructor to Fx.
-// In a real application, this would load from a file or environment variables.
-func ConfigRegister() *Config {
-	return &Config{}
+// It MUST load values from environment variables and return an error if missing.
+func ConfigRegister() (*Config, error) {
+	port := os.Getenv("HTTP_PORT")
+	if port == "" {
+		return nil, fmt.Errorf("HTTP_PORT environment variable is required")
+	}
+	return &Config{Port: port}, nil
 }
 
 // Param groups the dependencies for the constructor using fx.In.
@@ -111,17 +118,20 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
+
 	"go.uber.org/fx"
 	"your/project/internal/controller/userapi" // Controller dependency
 )
 
 var Module = fx.Module("server",
-	fx.Provide(NewRouter),
-	fx.Invoke(func(lc fx.Lifecycle, router *http.ServeMux, userController *userapi.Controller) {
+	fx.Provide(NewRouter, ConfigRegister),
+	fx.Invoke(func(lc fx.Lifecycle, router *http.ServeMux, userController *userapi.Controller, cfg *Config) {
 		userController.RegisterRoutes(router) // Register routes from the controller
 
-		server := &http.Server{ Addr: ":8080", Handler: router }
+		server := &http.Server{ Addr: ":" + cfg.Port, Handler: router }
 
 		lc.Append(fx.Hook{
 			OnStart: func(ctx context.Context) error {
@@ -134,6 +144,20 @@ var Module = fx.Module("server",
 		})
 	}),
 )
+
+// Config for the server module.
+type Config struct {
+	Port string
+}
+
+// ConfigRegister loads the server configuration.
+func ConfigRegister() (*Config, error) {
+	port := os.Getenv("HTTP_PORT")
+	if port == "" {
+		return nil, fmt.Errorf("HTTP_PORT environment variable is required")
+	}
+	return &Config{Port: port}, nil
+}
 
 func NewRouter() *http.ServeMux {
 	return http.NewServeMux()
@@ -195,4 +219,31 @@ func main() {
 		log.Printf("application exited with error: %v", err)
 	}
 }
+```
+
+#### 5. Docker Compose Configuration
+
+To ensure the application runs correctly, all required environment variables must be injected via `docker-compose.yml`.
+
+**Example: `docker-compose.yml`**
+
+```yaml
+services:
+  api:
+    build: .
+    environment:
+      - HTTP_PORT=8080
+      - POSTGRES_DSN=postgres://user:pass@db:5432/dbname?sslmode=disable
+      - POSTGRES_POOL_SIZE=10
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=dbname
 ```

@@ -33,6 +33,9 @@ package postgres
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strconv"
 
 	"go.uber.org/fx"
 	// Import the LIB interface that this module implements.
@@ -62,20 +65,34 @@ var Module = fx.Module("postgres-user-repo",
 )
 
 // Config holds the configuration specific to this module.
-// These values would typically be populated from a config file or environment variables.
+// These values MUST be populated from environment variables.
 type Config struct {
-	DSN      string `yaml:"dsn"`
-	PoolSize int    `yaml:"poolSize"`
+	DSN      string
+	PoolSize int
 }
 
 // ConfigRegister loads and provides the module's configuration.
-// In a real application, this function would contain logic to load and validate
-// the configuration for this module.
+// It MUST enforce that required environment variables are present.
 func ConfigRegister() (*Config, error) {
-	// For example: load from a config file.
-	var cfg Config
-	// ... loading logic ...
-	return &cfg, nil
+	dsn := os.Getenv("POSTGRES_DSN")
+	if dsn == "" {
+		return nil, fmt.Errorf("POSTGRES_DSN environment variable is required")
+	}
+
+	poolSizeStr := os.Getenv("POSTGRES_POOL_SIZE")
+	if poolSizeStr == "" {
+		return nil, fmt.Errorf("POSTGRES_POOL_SIZE environment variable is required")
+	}
+
+	poolSize, err := strconv.Atoi(poolSizeStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid POSTGRES_POOL_SIZE: %w", err)
+	}
+
+	return &Config{
+		DSN:      dsn,
+		PoolSize: poolSize,
+	}, nil
 }
 
 // Param is a struct that groups all dependencies for the main constructor.
