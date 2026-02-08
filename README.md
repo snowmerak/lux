@@ -38,16 +38,16 @@ Lux is a tool for managing a knowledge repository (.md files) and providing it t
 
 1. Install dependencies and generate the index:
    ```bash
-   task index
+   go tool task index
    ```
 
 2. Build the binary:
    ```bash
-   task build
+   go tool task build
    ```
    or install binary via go install to `$GOPATH/bin/lux`:
    ```bash
-   task install
+   go tool task install
    ```
 
 ### Running
