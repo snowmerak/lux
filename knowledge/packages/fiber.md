@@ -1,11 +1,11 @@
 # Fiber HTTP Server Fx Module Generation Guide
 
-This guide is for generating a standardized Fx module for a Fiber-based HTTP server. This module typically resides in `internal/controller` and is responsible for routing requests to services.
+This guide is for generating a standardized Fx module for a Fiber-based HTTP server using Fiber v3. This module typically resides in `internal/controller` and is responsible for routing requests to services.
 
 **File to Create**: `internal/controller/userapi/fx.go`
 
 **LLM Prompt**:
-"Create an Fx module for a Fiber HTTP server. The package name is `userapi`. It should depend on `user.Service` and `logger.Logger`. The module must register the server routes and manage the HTTP server lifecycle using `fx.Lifecycle`."
+"Create an Fx module for a Fiber v3 HTTP server. The package name is `userapi`. It should depend on `user.Service` and `logger.Logger`. The module must register the server routes and manage the HTTP server lifecycle using `fx.Lifecycle`."
 
 ---
 
@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"go.uber.org/fx"
 
 	"your/project/lib/adapter/logger"
@@ -57,7 +57,8 @@ func RegisterServer(p Param) {
 	app := fiber.New()
 
 	// Register routes
-	// Example: app.Get("/users/:id", makeGetUserHandler(p.UserService))
+	// In Fiber v3, fiber.Ctx is an interface, so use 'c fiber.Ctx' instead of 'c *fiber.Ctx'.
+	// Example: app.Get("/users/:id", func(c fiber.Ctx) error { ... })
 
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -78,3 +79,14 @@ func RegisterServer(p Param) {
 	})
 }
 ```
+
+### Key Changes in Fiber v3
+
+1.  **Import Path**: Changed from `github.com/gofiber/fiber/v2` to `github.com/gofiber/fiber/v3`.
+2.  **`fiber.Ctx` Interface**: `fiber.Ctx` is now an interface, not a pointer to a struct. Use `c fiber.Ctx`.
+3.  **Binding API**: Unified binding API via `c.Bind()`.
+    *   `c.BodyParser()` -> `c.Bind().Body()`
+    *   `c.QueryParser()` -> `c.Bind().Query()`
+    *   `c.ParamsParser()` -> `c.Bind().URI()`
+4.  **Context Integration**: `fiber.Ctx` now implements `context.Context` directly.
+5.  **Hooks**: Enhanced lifecycle hooks are available via `app.Hooks()`.
