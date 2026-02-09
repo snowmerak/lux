@@ -67,7 +67,7 @@ These are the non-negotiable rules of this architecture. They must be strictly f
 
 *   **Tool Dependency Management (Go 1.24+ Recommended)**: It is recommended to manage the `buf` CLI as a versioned tool dependency. This ensures that all developers and CI environments use the exact same version of the tool.
 
-    1.  **Add the tool to `go.mod`**: Run `go get -tool buf.build/buf/cmd/buf` to add it as a tool dependency.
+    1.  **Add the tool to `go.mod`**: Run `go get -tool github.com/bufbuild/buf/cmd/buf@latest` to add it as a tool dependency.
     2.  **Usage**: Run `go tool buf generate` to execute the version defined in your `go.mod`.
 
 #### Taskfile Automation
