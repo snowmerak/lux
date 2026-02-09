@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Redis client Fx module for caching and session management.
+tags: [go, redis, cache, fx, module]
+---
+
 # Redis Client Package (`pkg`) Generation Guide
 
 This guide provides a detailed blueprint for creating a Redis client package within the `pkg/client/` directory. It follows the standard module principles defined in `guide/module.md` and is specifically tailored for implementing a Redis client using the `redis/go-redis` library.

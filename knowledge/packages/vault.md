@@ -1,3 +1,8 @@
+---
+description: Guide for generating a HashiCorp Vault client Fx module for secrets management.
+tags: [go, vault, secrets, security, fx, module]
+---
+
 # Vault Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a HashiCorp Vault client package. It uses the `hashicorp/vault/api` library and follows the standard module principles in `guide/module.md`.

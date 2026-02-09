@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Microsoft SQL Server client Fx module.
+tags: [go, mssql, sql, database, fx, module]
+---
+
 # MSSQL Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a Microsoft SQL Server client package. It uses the `database/sql` package with the `microsoft/go-mssqldb` driver and follows the standard module principles.

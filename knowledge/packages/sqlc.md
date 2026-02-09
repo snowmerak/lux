@@ -1,3 +1,8 @@
+---
+description: Guide for generating a repository package using sqlc for type-safe database access.
+tags: [go, sqlc, database, repository, fx, module]
+---
+
 # SQLC Repository Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a repository package using `sqlc`. It follows the standard module principles in `guide/module.md` and the project structure in `guide/project_structure.md`.

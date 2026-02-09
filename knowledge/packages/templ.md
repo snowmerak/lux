@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Templ renderer Fx module for server-side rendering.
+tags: [go, templ, html, renderer, fx, module]
+---
+
 # Templ Renderer Fx Module Generation Guide
 
 This guide is for generating a standardized Fx module for a `templ` renderer. This allows `templ` components to be used for server-side rendering within an HTTP controller (like Chi or Fiber).

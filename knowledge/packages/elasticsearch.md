@@ -1,3 +1,8 @@
+---
+description: Guide for generating an Elasticsearch client Fx module using go-elasticsearch.
+tags: [go, elasticsearch, search, analytics, client, fx, module]
+---
+
 # Elasticsearch Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating an Elasticsearch client package. It uses the `github.com/elastic/go-elasticsearch/v8` library and follows the standard module principles in `guide/module.md`.

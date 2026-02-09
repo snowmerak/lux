@@ -1,3 +1,8 @@
+---
+description: Guide for generating an OpenSearch client Fx module for search and analytics.
+tags: [go, opensearch, search, fx, module]
+---
+
 # OpenSearch Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating an OpenSearch client package. It uses the `opensearch-project/opensearch-go/v2` library and follows the standard module principles in `guide/module.md`.

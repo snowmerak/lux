@@ -1,3 +1,8 @@
+---
+description: Guide for generating an Entgo ORM Fx module.
+tags: [go, entgo, orm, database, sql, ent, fx, module]
+---
+
 # Entgo ORM Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating an `entgo` ORM package. It follows the standard module principles and depends on a database client module (e.g., `pkg/client/postgres`).

@@ -1,3 +1,8 @@
+---
+description: Guide for generating a MinIO client Fx module for S3-compatible storage.
+tags: [go, minio, s3, storage, fx, module]
+---
+
 # MinIO Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a MinIO client package. It uses the `minio/minio-go/v7` library and follows the standard module principles in `guide/module.md`.

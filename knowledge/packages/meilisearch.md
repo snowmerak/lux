@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Meilisearch client Fx module.
+tags: [go, meilisearch, search, fx, module]
+---
+
 # Meilisearch Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a Meilisearch client package. It uses the `meilisearch/meilisearch-go` library and follows the standard module principles in `guide/module.md`.

@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Qdrant client Fx module for vector search.
+tags: [go, qdrant, vector-search, fx, module]
+---
+
 # Qdrant Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a Qdrant client package. It uses the `qdrant/go-client` library and follows the standard module principles in `guide/module.md`.

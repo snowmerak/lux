@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Valkey client Fx module for key-value storage.
+tags: [go, valkey, cache, redis, fx, module]
+---
+
 # Valkey Client Package (`pkg`) Generation Guide
 
 This guide provides a detailed blueprint for creating a Valkey client package within the `pkg/client/` directory. It follows the standard module principles defined in `guide/module.md` and utilizes the official `valkey-io/valkey-go` library.

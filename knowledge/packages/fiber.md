@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Fiber HTTP server Fx module.
+tags: [go, fiber, http, server, fx, module, controller]
+---
+
 # Fiber HTTP Server Fx Module Generation Guide
 
 This guide is for generating a standardized Fx module for a Fiber-based HTTP server using Fiber v3. This module typically resides in `internal/controller` and is responsible for routing requests to services.

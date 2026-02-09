@@ -88,20 +88,55 @@ func parseMarkdown(path string) (knowledge.Item, error) {
 
 	scanner := bufio.NewScanner(file)
 	var content strings.Builder
-	lineNum := 0
+	inFrontMatter := false
+	frontMatterDone := false
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		if lineNum == 0 && strings.HasPrefix(line, "# ") {
+
+		// Handle YAML Frontmatter
+		if !frontMatterDone {
+			if line == "---" {
+				if !inFrontMatter {
+					inFrontMatter = true
+					continue
+				} else {
+					inFrontMatter = false
+					frontMatterDone = true
+					continue
+				}
+			}
+
+			if inFrontMatter {
+				if strings.HasPrefix(line, "description:") {
+					// Description isn't in Item struct, so we can ignore it or add it to content
+					content.WriteString(line + "\n")
+				} else if strings.HasPrefix(line, "tags:") {
+					tagsStr := strings.TrimPrefix(line, "tags:")
+					tagsStr = strings.TrimSpace(tagsStr)
+					tagsStr = strings.Trim(tagsStr, "[]")
+					for _, t := range strings.Split(tagsStr, ",") {
+						item.Tags = append(item.Tags, strings.TrimSpace(t))
+					}
+				}
+				continue
+			}
+		}
+
+		// Extract Title from the first H1 if Title is empty
+		if item.Title == "" && strings.HasPrefix(line, "# ") {
 			item.Title = strings.TrimPrefix(line, "# ")
-		} else if lineNum == 1 && strings.HasPrefix(line, "Tags: ") {
+		}
+
+		// Keep existing Tags format support (backward compatibility)
+		if strings.HasPrefix(line, "Tags: ") {
 			tagsStr := strings.TrimPrefix(line, "Tags: ")
 			for _, t := range strings.Split(tagsStr, ",") {
 				item.Tags = append(item.Tags, strings.TrimSpace(t))
 			}
-		} else {
-			content.WriteString(line + "\n")
 		}
-		lineNum++
+
+		content.WriteString(line + "\n")
 	}
 	item.Content = content.String()
 	return item, nil

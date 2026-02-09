@@ -1,3 +1,8 @@
+---
+description: Guide for generating a gRPC server Fx module.
+tags: [go, grpc, server, fx, module, controller, rpc]
+---
+
 # gRPC Server Fx Module Generation Guide
 
 This guide is for generating a standardized Fx module for a gRPC server. This module typically resides in `internal/controller` and is responsible for exposing services via gRPC.

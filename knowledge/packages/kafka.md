@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Kafka client Fx module using kafka-go.
+tags: [go, kafka, messaging, pubsub, agent, fx, module]
+---
+
 # Kafka Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a Kafka client package. It uses the `segmentio/kafka-go` library and follows the standard module principles in `guide/module.md`.

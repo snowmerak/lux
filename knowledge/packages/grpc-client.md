@@ -1,3 +1,8 @@
+---
+description: Guide for generating a gRPC client Fx module.
+tags: [go, grpc, client, fx, module, rpc]
+---
+
 # gRPC Client Fx Module Generation Guide
 
 This guide is for generating a standardized Fx module for a gRPC client. The module will manage the gRPC connection lifecycle and provide a typed client as a dependency to other parts of the application.

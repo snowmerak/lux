@@ -1,3 +1,8 @@
+---
+description: Guide for generating a FalkorDB client Fx module using falkordb-go.
+tags: [go, falkordb, graph, database, client, fx, module]
+---
+
 # FalkorDB Client Package (`pkg`) Generation Guide
 
 This guide provides a detailed blueprint for creating a FalkorDB client package within the `pkg/client/` directory. It follows the standard module principles and uses the `snowmerak/falkordb-go` library.

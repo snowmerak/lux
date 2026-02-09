@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Chi HTTP server Fx module.
+tags: [go, chi, http, server, fx, module, controller]
+---
+
 # Chi HTTP Server Fx Module Generation Guide
 
 This guide is for generating a standardized Fx module for a Chi-based HTTP server. This module typically resides in `internal/controller` and is responsible for routing requests to services.

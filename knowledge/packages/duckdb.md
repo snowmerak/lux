@@ -1,3 +1,8 @@
+---
+description: Guide for generating a DuckDB client Fx module using go-duckdb.
+tags: [go, duckdb, analytics, olap, database, client, fx, module]
+---
+
 # DuckDB Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a DuckDB client package within the `pkg/client/` directory. It uses the `github.com/marcboeker/go-duckdb` driver and follows the standard module principles in `guide/module.md`.

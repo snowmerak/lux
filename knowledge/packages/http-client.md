@@ -1,3 +1,8 @@
+---
+description: Guide for generating an HTTP client Fx module.
+tags: [go, http, client, fx, module, rest]
+---
+
 # HTTP Client Fx Module Generation Guide
 
 This guide is for generating a standardized Fx module for a generic HTTP client. This module is useful for creating reusable clients in `pkg` that communicate with external REST APIs.

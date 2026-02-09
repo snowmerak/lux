@@ -1,3 +1,8 @@
+---
+description: Guide for generating a ClickHouse client Fx module using clickhouse-go.
+tags: [go, clickhouse, analytics, database, client, fx, module]
+---
+
 # ClickHouse Client Package (`pkg`) Generation Guide
 
 This guide provides a detailed blueprint for creating a ClickHouse client package within the `pkg/client/` directory. It follows the standard module principles in `guide/module.md` and uses the `ClickHouse/clickhouse-go/v2` library.

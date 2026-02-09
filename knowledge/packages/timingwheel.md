@@ -1,3 +1,8 @@
+---
+description: Guide for generating a TimingWheel package for efficient timer management.
+tags: [go, timingwheel, scheduler, timer, fx, module]
+---
+
 # TimingWheel Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a `timingwheel` module within the `pkg/` directory. It uses the `github.com/RussellLuo/timingwheel` library, which implements Hierarchical Timing Wheels for efficient timer management.

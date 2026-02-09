@@ -1,3 +1,8 @@
+---
+description: Guide for generating a NATS client Fx module for messaging.
+tags: [go, nats, messaging, fx, module]
+---
+
 # NATS Client Package (`pkg`) Generation Guide
 
 This guide provides a blueprint for creating a NATS client package. It uses the `nats-io/nats.go` library and follows the standard module principles in `guide/module.md`.

@@ -1,3 +1,8 @@
+---
+description: Guide for generating a Cassandra client Fx module using gocql.
+tags: [go, cassandra, gocql, nosql, client, fx, module]
+---
+
 # Cassandra Client Package (`pkg`) Generation Guide
 
 This guide provides a detailed blueprint for creating a Cassandra client package within the `pkg/client/` directory. It follows the standard module principles defined in `guide/module.md` and uses the `gocql/gocql` library.
